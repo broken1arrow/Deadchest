@@ -45,7 +45,7 @@ public class ClickListener implements Listener {
     /**
      * Checks if the player clicks near a DeadChest
      */
-    private boolean isNearGraveChest(PlayerInteractEvent e) {
+    protected boolean isNearGraveChest(PlayerInteractEvent e) {
         for (ChestData cd : chestDataList) {
             if (cd.getChestLocation().getWorld() == e.getPlayer().getWorld()
                     && e.getClickedBlock().getWorld() == e.getPlayer().getWorld()
@@ -59,7 +59,7 @@ public class ClickListener implements Listener {
     /**
      * Handles the primary interaction with a DeadChest
      */
-    private void handleChestInteraction(PlayerInteractEvent e, Block block) {
+    protected void handleChestInteraction(PlayerInteractEvent e, Block block) {
         Player player = e.getPlayer();
         String playerUUID = player.getUniqueId().toString();
         boolean playerHasPermission = player.hasPermission(Permission.CHESTPASS.label);
