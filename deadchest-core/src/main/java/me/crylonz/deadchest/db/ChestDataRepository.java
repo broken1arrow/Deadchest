@@ -6,6 +6,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.plugin.Plugin;
 
+import javax.annotation.Nonnull;
 import java.sql.*;
 import java.util.*;
 import java.util.Date;
@@ -134,6 +135,164 @@ public class ChestDataRepository {
         }
     }
 
+    public static void update(@Nonnull final ChestData chest) {
+        String sqlUpdate = "UPDATE chest_data SET " +
+                "chest_date = ?, " +
+                "is_infinity = ?, " +
+                "is_removed_block = ?, " +
+                "holo_world = ?, " +
+                "holo_x = ?, " +
+                "holo_y = ?, " +
+                "holo_z = ?, " +
+                "holo_yaw = ?, " +
+                "holo_pitch = ?, " +
+                "holographic_timer_id = ?, " +
+                "holographic_owner_id = ?, " +
+                "world_name = ?, " +
+                "xp_stored = ?, " +
+                "inventory = ? " +
+                "WHERE player_uuid = ? AND chest_world = ? AND chest_x = ? AND chest_y = ? AND chest_z = ?";
+
+        String checkDublicate = "SELECT player_uuid, " +
+                "chest_world, " +
+                "chest_x, " +
+                "chest_y, " +
+                "chest_z " +
+                "FROM chest_data WHERE player_uuid = ? AND chest_world = ? AND chest_x = ? AND chest_y = ? AND chest_z = ? LIMIT 1";
+
+        try (Connection conn = db.connection();
+             PreparedStatement psDublicate = conn.prepareStatement(checkDublicate);
+             PreparedStatement ps = conn.prepareStatement(sqlUpdate)) {
+            Location chestLoc = chest.getChestLocation();
+            Location holoLoc = chest.getHolographicTimer();
+
+            psDublicate.setString(1, chest.getPlayerUUID());
+            psDublicate.setString(2, chestLoc.getWorld().getName());
+            psDublicate.setInt(3, chestLoc.getBlockX());
+            psDublicate.setInt(4, chestLoc.getBlockY());
+            psDublicate.setInt(5, chestLoc.getBlockZ());
+            try (ResultSet rs = psDublicate.executeQuery()) {
+                if (!rs.next()) {
+                    save(chest);
+                    return;
+                }
+            }
+
+            ps.setLong(1, chest.getChestDate().getTime());
+            ps.setBoolean(2, chest.isInfinity());
+            ps.setBoolean(3, chest.isRemovedBlock());
+
+            ps.setString(4, holoLoc.getWorld().getName());
+            ps.setInt(5, holoLoc.getBlockX());
+            ps.setInt(6, holoLoc.getBlockY());
+            ps.setInt(7, holoLoc.getBlockZ());
+            ps.setFloat(8, holoLoc.getYaw());
+            ps.setFloat(9, holoLoc.getPitch());
+
+            ps.setString(10, chest.getHolographicTimerId().toString());
+            ps.setString(11, chest.getHolographicOwnerId().toString());
+            ps.setString(12, chest.getWorldName());
+            ps.setInt(13, chest.getXpStored());
+            ps.setBytes(14, ItemBytes.toBytesList(chest.getInventory()));
+
+            ps.setString(15, chest.getPlayerUUID());
+            ps.setString(16, chestLoc.getWorld().getName());
+            ps.setInt(17, chestLoc.getBlockX());
+            ps.setInt(18, chestLoc.getBlockY());
+            ps.setInt(19, chestLoc.getBlockZ());
+            ps.setFloat(20, chestLoc.getYaw());
+            ps.setFloat(21, chestLoc.getPitch());
+
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+
+    public static boolean save(@Nonnull final ChestData chest) {
+        String sql = "INSERT INTO chest_data (" +
+                "player_uuid, player_name, chest_world, chest_x, chest_y, chest_z, chest_yaw, chest_pitch, " +
+                "chest_date, is_infinity, is_removed_block, " +
+                "holo_world, holo_x, holo_y, holo_z, holo_yaw, holo_pitch, " +
+                "holographic_timer_id, holographic_owner_id, world_name, xp_stored, inventory" +
+                ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String checkDublicate = "SELECT player_uuid, " +
+                "chest_world, " +
+                "chest_x, " +
+                "chest_y, " +
+                "chest_z " +
+                "FROM chest_data WHERE player_uuid = ? AND chest_world = ? AND chest_x = ? AND chest_y = ? AND chest_z = ? LIMIT 1";
+
+        try (Connection conn = db.connection();
+             PreparedStatement psDublicate = conn.prepareStatement(checkDublicate);
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            Location chestLoc = chest.getChestLocation();
+            Location holoLoc = chest.getHolographicTimer();
+
+            psDublicate.setString(1, chest.getPlayerUUID());
+            psDublicate.setString(2, chestLoc.getWorld().getName());
+            psDublicate.setInt(3, chestLoc.getBlockX());
+            psDublicate.setInt(4, chestLoc.getBlockY());
+            psDublicate.setInt(5, chestLoc.getBlockZ());
+            try (ResultSet rs = psDublicate.executeQuery()) {
+                if (rs.next())
+                    return true;
+            }
+
+            ps.setString(1, chest.getPlayerUUID());
+            ps.setString(2, chest.getPlayerName());
+
+            ps.setString(3, chestLoc.getWorld().getName());
+            ps.setInt(4, chestLoc.getBlockX());
+            ps.setInt(5, chestLoc.getBlockY());
+            ps.setInt(6, chestLoc.getBlockZ());
+            ps.setFloat(7, chestLoc.getYaw());
+            ps.setFloat(8, chestLoc.getPitch());
+
+            ps.setLong(9, chest.getChestDate().getTime());
+            ps.setBoolean(10, chest.isInfinity());
+            ps.setBoolean(11, chest.isRemovedBlock());
+
+            ps.setString(12, holoLoc.getWorld().getName());
+            ps.setInt(13, holoLoc.getBlockX());
+            ps.setInt(14, holoLoc.getBlockY());
+            ps.setInt(15, holoLoc.getBlockZ());
+            ps.setFloat(16, holoLoc.getYaw());
+            ps.setFloat(17, holoLoc.getPitch());
+
+            ps.setString(18, chest.getHolographicTimerId().toString());
+            ps.setString(19, chest.getHolographicOwnerId().toString());
+            ps.setString(20, chest.getWorldName());
+            ps.setInt(21, chest.getXpStored());
+            ps.setBytes(22, ItemBytes.toBytesList(chest.getInventory()));
+
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return false;
+    }
+
+    public static void remove(@Nonnull final ChestData chest) {
+        String sql = "DELETE FROM chest_data WHERE player_uuid = ? AND chest_world = ? AND chest_x = ? AND chest_y = ? AND chest_z = ?";
+
+        try (Connection conn = db.connection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            Location chestLoc = chest.getChestLocation();
+            ps.setString(1, chest.getPlayerUUID());
+            ps.setString(2, chestLoc.getWorld().getName());
+            ps.setInt(3, chestLoc.getBlockX());
+            ps.setInt(4, chestLoc.getBlockY());
+            ps.setInt(5, chestLoc.getBlockZ());
+
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public static List<ChestData> findAll() {
         List<ChestData> list = new ArrayList<>();
