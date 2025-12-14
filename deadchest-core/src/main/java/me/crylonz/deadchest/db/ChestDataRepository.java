@@ -61,6 +61,7 @@ public class ChestDataRepository {
             ChestDataRepository.saveAll(chests);
         });
     }
+
     public static void saveAsync(@Nonnull final ChestData chest ,@Nonnull final Consumer<Boolean> containsChestOnLoc) {
         sqlExecutor.runAsync(() -> {
             containsChestOnLoc.accept(ChestDataRepository.save(chest));
@@ -135,6 +136,87 @@ public class ChestDataRepository {
             }
 
             ps.executeBatch();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void batchSave(Collection<ChestData> chests) {
+        final String checkDuplicate = "SELECT 1 FROM chest_data WHERE player_uuid = ? AND chest_world = ? AND chest_x = ? AND chest_y = ? AND chest_z = ? LIMIT 1";
+        final String sqlUpdate = "UPDATE chest_data SET " +
+                "chest_date = ?," +
+                " is_infinity = ?, " +
+                "is_removed_block = ?, " +
+                "holo_world = ?, " +
+                "holo_x = ?, " +
+                "holo_y = ?, " +
+                "holo_z = ?, " +
+                "holo_yaw = ?, " +
+                "holo_pitch = ?, " +
+                "holographic_timer_id = ?, " +
+                "holographic_owner_id = ?, " +
+                "world_name = ?, " +
+                "xp_stored = ?, " +
+                "inventory = ? " +
+                "WHERE player_uuid = ? AND chest_world = ? AND chest_x = ? AND chest_y = ? AND chest_z = ?";
+
+        try (Connection conn = db.connection()) {
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement psCheck = conn.prepareStatement(checkDuplicate);
+                 PreparedStatement psUpdate = conn.prepareStatement(sqlUpdate)) {
+                boolean hasUpdates = false;
+                for (ChestData chest : chests) {
+                    Location chestLoc = chest.getChestLocation();
+                    Location holoLoc = chest.getHolographicTimer();
+
+                    // Check if row exists
+                    psCheck.setString(1, chest.getPlayerUUID());
+                    psCheck.setString(2, chestLoc.getWorld().getName());
+                    psCheck.setInt(3, chestLoc.getBlockX());
+                    psCheck.setInt(4, chestLoc.getBlockY());
+                    psCheck.setInt(5, chestLoc.getBlockZ());
+
+                    boolean exists;
+                    try (ResultSet rs = psCheck.executeQuery()) {
+                        exists = rs.next();
+                    }
+                    if (!exists) {
+                        save(chest);
+                    } else {
+                        int i = 1;
+                        psUpdate.setLong(i++, chest.getChestDate().getTime());
+                        psUpdate.setBoolean(i++, chest.isInfinity());
+                        psUpdate.setBoolean(i++, chest.isRemovedBlock());
+
+                        psUpdate.setString(i++, holoLoc.getWorld().getName());
+                        psUpdate.setInt(i++, holoLoc.getBlockX());
+                        psUpdate.setInt(i++, holoLoc.getBlockY());
+                        psUpdate.setInt(i++, holoLoc.getBlockZ());
+                        psUpdate.setFloat(i++, holoLoc.getYaw());
+                        psUpdate.setFloat(i++, holoLoc.getPitch());
+
+                        psUpdate.setString(i++, chest.getHolographicTimerId().toString());
+                        psUpdate.setString(i++, chest.getHolographicOwnerId().toString());
+                        psUpdate.setString(i++, chest.getWorldName());
+                        psUpdate.setInt(i++, chest.getXpStored());
+                        psUpdate.setBytes(i++, ItemBytes.toBytesList(chest.getInventory()));
+
+                        psUpdate.setString(i++, chest.getPlayerUUID());
+                        psUpdate.setString(i++, chestLoc.getWorld().getName());
+                        psUpdate.setInt(i++, chestLoc.getBlockX());
+                        psUpdate.setInt(i++, chestLoc.getBlockY());
+                        psUpdate.setInt(i + 1, chestLoc.getBlockZ());
+                        psUpdate.addBatch();
+                        hasUpdates = true;
+                    }
+                }
+                if (hasUpdates) {
+                    psUpdate.executeBatch();
+                }
+            }
+            conn.commit();
+            conn.setAutoCommit(true);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
