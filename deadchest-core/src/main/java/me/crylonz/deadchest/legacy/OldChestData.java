@@ -243,7 +243,7 @@ public final class OldChestData implements ConfigurationSerializable {
                         ));
                     }
 
-                    ChestDataRepository.saveAll(chestDataList);
+                    ChestDataRepository.batchSave(chestDataList);
                     fileManager.getChestDataFile().delete();
                     log.info("[DeadChest] Migration complete: all ChestData moved to the new storage system. Removed legacy chestdata.yml.");
                 }

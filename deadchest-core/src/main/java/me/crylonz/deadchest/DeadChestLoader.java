@@ -7,6 +7,7 @@ import me.crylonz.deadchest.db.IgnoreItemListRepository;
 import me.crylonz.deadchest.db.SQLExecutor;
 import me.crylonz.deadchest.db.SQLite;
 import me.crylonz.deadchest.deps.worldguard.WorldGuardSoftDependenciesChecker;
+import me.crylonz.deadchest.legacy.OldChestData;
 import me.crylonz.deadchest.utils.ConfigKey;
 import me.crylonz.deadchest.utils.DeadChestConfig;
 import org.bukkit.Bukkit;
@@ -21,7 +22,6 @@ import java.util.logging.Logger;
 
 import static me.crylonz.deadchest.DeadChestManager.*;
 import static me.crylonz.deadchest.db.IgnoreItemListRepository.loadIgnoreIntoInventory;
-import static me.crylonz.deadchest.legacy.OldChestData.migrateOldChestData;
 import static me.crylonz.deadchest.utils.Utils.generateLog;
 
 public class DeadChestLoader {
@@ -61,11 +61,13 @@ public class DeadChestLoader {
         db = new SQLite(plugin);
         db.init();
         IgnoreItemListRepository.initTable();
-        ChestDataRepository.initTable();
+
 
         ignoreList = Bukkit.createInventory(new IgnoreInventoryHolder(), 36, "Ignore list");
         config = new DeadChestConfig(plugin);
         fileManager = new FileManager(plugin);
+
+        ChestDataRepository.initTable(/* migrate old chestData.yml config */ OldChestData::migrateOldChestData);
 
         chestDataList = new ArrayList<>();
         local = new Localization();
@@ -159,9 +161,6 @@ public class DeadChestLoader {
 
         // database (chestData)
         chestDataList = ChestDataRepository.findAll();
-
-        // migrate old chestData.yml config
-        migrateOldChestData();
 
         // ignore list
         loadIgnoreIntoInventory(ignoreList);

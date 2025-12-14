@@ -17,7 +17,7 @@ import static me.crylonz.deadchest.DeadChestLoader.sqlExecutor;
 
 public class ChestDataRepository {
 
-    public static void initTable() {
+    public static void initTable(Runnable afterCreation) {
         sqlExecutor.runAsync(() -> {
             try (Statement st = db.connection().createStatement()) {
                 st.executeUpdate(
@@ -49,6 +49,7 @@ public class ChestDataRepository {
                 );
                 st.executeUpdate("CREATE INDEX IF NOT EXISTS idx_chest_player ON chest_data(player_uuid)");
                 st.executeUpdate("CREATE INDEX IF NOT EXISTS idx_chest_location ON chest_data(chest_world, chest_x, chest_z)");
+                afterCreation.run();
             } catch (SQLException e) {
                 throw new RuntimeException("Failed to create chest_data schema", e);
             }
@@ -58,7 +59,7 @@ public class ChestDataRepository {
 
     public static void saveAllAsync(Collection<ChestData> chests) {
         sqlExecutor.runAsync(() -> {
-            ChestDataRepository.saveAll(chests);
+            ChestDataRepository.batchSave(chests);
         });
     }
 
