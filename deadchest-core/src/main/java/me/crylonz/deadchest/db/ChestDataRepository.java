@@ -61,9 +61,9 @@ public class ChestDataRepository {
             ChestDataRepository.saveAll(chests);
         });
     }
-    public static void saveAsync(@Nonnull final ChestData chest) {
+    public static void saveAsync(@Nonnull final ChestData chest ,@Nonnull final Consumer<Boolean> containsChestOnLoc) {
         sqlExecutor.runAsync(() -> {
-            ChestDataRepository.save(chest);
+            containsChestOnLoc.accept(ChestDataRepository.save(chest));
         });
     }
 

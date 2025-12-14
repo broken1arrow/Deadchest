@@ -9,7 +9,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import javax.annotation.Nonnull;
 import java.util.*;
+import java.util.function.Consumer;
 
 @SerializableAs("ChestData")
 public final class ChestData {
@@ -215,8 +217,8 @@ public final class ChestData {
         this.xpStored = xpStored;
     }
 
-    public void save() {
-        ChestDataRepository.saveAsync(this);
+    public void save(@Nonnull final Consumer<Boolean> containsChestOnLoc) {
+        ChestDataRepository.saveAsync(this,containsChestOnLoc);
     }
 
     enum Indexes {WORLD_NAME, LOC_X, LOC_Y, LOC_Z}

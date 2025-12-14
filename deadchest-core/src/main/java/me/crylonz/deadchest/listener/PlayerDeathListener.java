@@ -378,7 +378,12 @@ public class PlayerDeathListener implements Listener {
                 holoName,
                 getTotalExperienceToStore(p)
         );
-        chestData.save();
+        chestData.save(containsChestOnLoc -> {
+            if (containsChestOnLoc){
+                generateLog("Could not generate deadchest, as dublicate exist in database on same location [" + p.getName() + "] in " + b.getWorld().getName() +
+                        " at X:" + b.getX() + " Y:" + b.getY() + " Z:" + b.getZ());
+            }
+        });
         return chestData;
     }
 
