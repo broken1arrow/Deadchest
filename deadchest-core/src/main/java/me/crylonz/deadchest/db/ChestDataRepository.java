@@ -61,6 +61,11 @@ public class ChestDataRepository {
             ChestDataRepository.saveAll(chests);
         });
     }
+    public static void saveAsync(@Nonnull final ChestData chest) {
+        sqlExecutor.runAsync(() -> {
+            ChestDataRepository.save(chest);
+        });
+    }
 
 
     /**
@@ -136,7 +141,7 @@ public class ChestDataRepository {
     }
 
     public static void update(@Nonnull final ChestData chest) {
-        String sqlUpdate = "UPDATE chest_data SET " +
+        final String sqlUpdate = "UPDATE chest_data SET " +
                 "chest_date = ?, " +
                 "is_infinity = ?, " +
                 "is_removed_block = ?, " +
@@ -153,7 +158,7 @@ public class ChestDataRepository {
                 "inventory = ? " +
                 "WHERE player_uuid = ? AND chest_world = ? AND chest_x = ? AND chest_y = ? AND chest_z = ?";
 
-        String checkDublicate = "SELECT player_uuid, " +
+       final String checkDublicate = "SELECT player_uuid, " +
                 "chest_world, " +
                 "chest_x, " +
                 "chest_y, " +
@@ -212,13 +217,13 @@ public class ChestDataRepository {
 
 
     public static boolean save(@Nonnull final ChestData chest) {
-        String sql = "INSERT INTO chest_data (" +
+      final   String sql = "INSERT INTO chest_data (" +
                 "player_uuid, player_name, chest_world, chest_x, chest_y, chest_z, chest_yaw, chest_pitch, " +
                 "chest_date, is_infinity, is_removed_block, " +
                 "holo_world, holo_x, holo_y, holo_z, holo_yaw, holo_pitch, " +
                 "holographic_timer_id, holographic_owner_id, world_name, xp_stored, inventory" +
                 ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        String checkDublicate = "SELECT player_uuid, " +
+       final String checkDublicate = "SELECT player_uuid, " +
                 "chest_world, " +
                 "chest_x, " +
                 "chest_y, " +

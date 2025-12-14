@@ -1,5 +1,6 @@
 package me.crylonz.deadchest;
 
+import me.crylonz.deadchest.db.ChestDataRepository;
 import org.bukkit.Location;
 import org.bukkit.configuration.serialization.SerializableAs;
 import org.bukkit.entity.ArmorStand;
@@ -212,6 +213,10 @@ public final class ChestData {
 
     public void setXpStored(int xpStored) {
         this.xpStored = xpStored;
+    }
+
+    public void save() {
+        ChestDataRepository.saveAsync(this);
     }
 
     enum Indexes {WORLD_NAME, LOC_X, LOC_Y, LOC_Z}
