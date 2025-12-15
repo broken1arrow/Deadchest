@@ -48,7 +48,9 @@ public class ChestDataRepository {
                                 ")"
                 );
                 st.executeUpdate("CREATE INDEX IF NOT EXISTS idx_chest_player ON chest_data(player_uuid)");
-                st.executeUpdate("CREATE INDEX IF NOT EXISTS idx_chest_location ON chest_data(chest_world, chest_x, chest_z)");
+                //st.executeUpdate("DROP INDEX IF EXISTS idx_chest_location");
+                ckeckIfUpdated();
+                st.executeUpdate("CREATE INDEX IF NOT EXISTS idx_chest_location ON chest_data(chest_world, chest_x, chest_y, chest_z)");
                 afterCreation.run();
             } catch (SQLException e) {
                 throw new RuntimeException("Failed to create chest_data schema", e);
@@ -63,12 +65,17 @@ public class ChestDataRepository {
         });
     }
 
-    public static void saveAsync(@Nonnull final ChestData chest ,@Nonnull final Consumer<Boolean> containsChestOnLoc) {
+    public static void saveAsync(@Nonnull final ChestData chest, @Nonnull final Consumer<Boolean> containsChestOnLoc) {
         sqlExecutor.runAsync(() -> {
             containsChestOnLoc.accept(ChestDataRepository.save(chest));
         });
     }
 
+    public static void updateAsync(@Nonnull final ChestData chest, @Nonnull final Consumer<Boolean> updateInsert) {
+        sqlExecutor.runAsync(() -> {
+            updateInsert.accept(ChestDataRepository.update(chest));
+        });
+    }
 
     /**
      * Usage :
@@ -223,7 +230,7 @@ public class ChestDataRepository {
         }
     }
 
-    public static void update(@Nonnull final ChestData chest) {
+    public static boolean update(@Nonnull final ChestData chest) {
         final String sqlUpdate = "UPDATE chest_data SET " +
                 "chest_date = ?, " +
                 "is_infinity = ?, " +
@@ -241,7 +248,7 @@ public class ChestDataRepository {
                 "inventory = ? " +
                 "WHERE player_uuid = ? AND chest_world = ? AND chest_x = ? AND chest_y = ? AND chest_z = ?";
 
-       final String checkDublicate = "SELECT player_uuid, " +
+        final String checkDublicate = "SELECT player_uuid, " +
                 "chest_world, " +
                 "chest_x, " +
                 "chest_y, " +
@@ -262,7 +269,7 @@ public class ChestDataRepository {
             try (ResultSet rs = psDublicate.executeQuery()) {
                 if (!rs.next()) {
                     save(chest);
-                    return;
+                    return true;
                 }
             }
 
@@ -295,18 +302,18 @@ public class ChestDataRepository {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+        return false;
     }
 
 
-
     public static boolean save(@Nonnull final ChestData chest) {
-      final   String sql = "INSERT INTO chest_data (" +
+        final String sql = "INSERT INTO chest_data (" +
                 "player_uuid, player_name, chest_world, chest_x, chest_y, chest_z, chest_yaw, chest_pitch, " +
                 "chest_date, is_infinity, is_removed_block, " +
                 "holo_world, holo_x, holo_y, holo_z, holo_yaw, holo_pitch, " +
                 "holographic_timer_id, holographic_owner_id, world_name, xp_stored, inventory" +
                 ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-       final String checkDublicate = "SELECT player_uuid, " +
+        final String checkDublicate = "SELECT player_uuid, " +
                 "chest_world, " +
                 "chest_x, " +
                 "chest_y, " +
@@ -429,4 +436,37 @@ public class ChestDataRepository {
                 rs.getInt("xp_stored")
         );
     }
+
+    private static void ckeckIfUpdated() {
+        try (Connection connection = db.connection();
+             Statement st = connection.createStatement()) {
+            final List<String> columns = new ArrayList<>();
+
+            try (ResultSet rs = st.executeQuery("PRAGMA index_info('idx_chest_location')")) {
+                while (rs.next()) {
+                    columns.add(rs.getString("name"));
+                }
+            }
+
+            final boolean hasCorrectIndex =
+                    columns.size() == 4 &&
+                            columns.get(0).equals("chest_world") &&
+                            columns.get(1).equals("chest_x") &&
+                            columns.get(2).equals("chest_y") &&
+                            columns.get(3).equals("chest_z");
+
+            if (!hasCorrectIndex) {
+                try (Statement createIndex = connection.createStatement()) {
+                    createIndex.execute("DROP INDEX IF EXISTS idx_chest_location");
+                    createIndex.execute(
+                            "CREATE INDEX idx_chest_location " +
+                                    "ON chest_data (chest_world, chest_x, chest_y, chest_z)"
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }

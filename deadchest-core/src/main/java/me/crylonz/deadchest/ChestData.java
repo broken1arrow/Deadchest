@@ -218,8 +218,13 @@ public final class ChestData {
     }
 
     public void save(@Nonnull final Consumer<Boolean> containsChestOnLoc) {
-        ChestDataRepository.saveAsync(this,containsChestOnLoc);
+        ChestDataRepository.saveAsync(this, containsChestOnLoc);
     }
+
+    public void updatee(@Nonnull final Consumer<Boolean> containsChestOnLoc) {
+        ChestDataRepository.updateAsync(this, containsChestOnLoc);
+    }
+
 
     enum Indexes {WORLD_NAME, LOC_X, LOC_Y, LOC_Z}
 }
