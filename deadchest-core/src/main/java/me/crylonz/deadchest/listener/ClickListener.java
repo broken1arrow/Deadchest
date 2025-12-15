@@ -194,7 +194,7 @@ public class ClickListener implements Listener {
         block.setType(Material.AIR);
         cd.remove();
         chestDataList.remove(cd);
-        //ChestDataRepository.saveAllAsync(chestDataList);
+        //todo remove? ChestDataRepository.saveAllAsync(chestDataList);
         block.getWorld().playEffect(block.getLocation(), Effect.MOBSPAWNER_FLAMES, 10);
         player.playSound(block.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 10, 1);
         cd.removeArmorStand();
