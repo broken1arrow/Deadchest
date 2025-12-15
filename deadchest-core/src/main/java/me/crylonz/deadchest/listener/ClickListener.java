@@ -3,7 +3,6 @@ package me.crylonz.deadchest.listener;
 import me.crylonz.deadchest.ChestData;
 import me.crylonz.deadchest.DeadchestPickUpEvent;
 import me.crylonz.deadchest.Permission;
-import me.crylonz.deadchest.db.ChestDataRepository;
 import me.crylonz.deadchest.utils.ConfigKey;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -193,8 +192,9 @@ public class ClickListener implements Listener {
      */
     private void cleanupChest(ChestData cd, Block block, Player player) {
         block.setType(Material.AIR);
+        cd.remove();
         chestDataList.remove(cd);
-        ChestDataRepository.saveAllAsync(chestDataList);
+        //ChestDataRepository.saveAllAsync(chestDataList);
         block.getWorld().playEffect(block.getLocation(), Effect.MOBSPAWNER_FLAMES, 10);
         player.playSound(block.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 10, 1);
         cd.removeArmorStand();

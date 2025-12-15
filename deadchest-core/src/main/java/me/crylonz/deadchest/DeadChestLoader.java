@@ -230,7 +230,7 @@ public class DeadChestLoader {
             while (chestDataIt.hasNext()) {
                 ChestData chestData = chestDataIt.next();
                 if (chestData == null) {
-                    generateLog("Deadchest of [null] has no invalid data set. Get removed.");
+                    generateLog("Deadchest of [null] has invalid data set. Get removed.");
                     chestDataIt.remove();
                     continue;
                 }
