@@ -221,8 +221,12 @@ public final class ChestData {
         ChestDataRepository.saveAsync(this, containsChestOnLoc);
     }
 
-    public void updatee(@Nonnull final Consumer<Boolean> containsChestOnLoc) {
+    public void update(@Nonnull final Consumer<Boolean> containsChestOnLoc) {
         ChestDataRepository.updateAsync(this, containsChestOnLoc);
+    }
+
+    public void remove() {
+        ChestDataRepository.removeAsync(this);
     }
 
 
