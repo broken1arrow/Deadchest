@@ -77,6 +77,12 @@ public class ChestDataRepository {
         });
     }
 
+    public static void removeAsync(@Nonnull final ChestData chest) {
+        sqlExecutor.runAsync(() -> {
+            ChestDataRepository.remove(chest);
+        });
+    }
+
     /**
      * Usage :
      * ChestDataRepository.findAllAsync(data -> {
