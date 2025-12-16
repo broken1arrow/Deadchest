@@ -31,6 +31,7 @@ public class DeadChestLoader {
     public static Logger log = Logger.getLogger("Minecraft");
     public static FileManager fileManager;
     private static List<ChestData> chestDataList;
+    private static final Map<UUID, Set<Location>> players = new HashMap<>();
     public static WorldGuardSoftDependenciesChecker wgsdc = null;
     public static ArrayList<Material> graveBlocks = new ArrayList<>();
     public static Localization local;
@@ -124,22 +125,22 @@ public class DeadChestLoader {
     public static void addChestData(final ChestData chestData) {
         if(chestDataList == null)
             setChestData(new ArrayList<>());
+        addPlayerData(chestData);
         chestDataList.add(chestData);
     }
 
-    public static void setChestData(final List<ChestData> chestData) {
-        chestDataList = chestData;
+    public static void setChestData(final List<ChestData> chests) {
+        if(chests != null){
+            chests.forEach(DeadChestLoader::addPlayerData);
+        }
+        chestDataList = chests;
     }
 
     public static void removeChestData(@Nonnull final ChestData chest) {
         chest.removeArmorStand();
         chest.remove();
+        removePlayerData(chest);
         chestDataList.remove(chest);
-    }
-
-    public static void removeChestDataList(@Nonnull final Collection<ChestData> chests) {
-        chests.forEach(chestData -> chestDataList.remove(chestData));
-        ChestDataRepository.removeBatchAsync(chests);
     }
 
     public static void removeChestData(@Nonnull final Location location) {
@@ -147,10 +148,19 @@ public class DeadChestLoader {
             if (chestData.getChestLocation().equals(location)) {
                 chestData.removeArmorStand();
                 chestData.remove();
+                removePlayerData(chestData);
                 return true;
             }
             return false;
         });
+    }
+
+    public static void removeChestDataList(@Nonnull final Collection<ChestData> chests) {
+        chests.forEach(chestData -> {
+            chestDataList.remove(chestData);
+            removePlayerData(chestData);
+        });
+        ChestDataRepository.removeBatchAsync(chests);
     }
 
     public static List<ChestData> getChestDataList() {
@@ -162,6 +172,7 @@ public class DeadChestLoader {
     public static void clearChestData() {
         if (chestDataList != null)
             chestDataList.clear();
+        players.clear();
         ChestDataRepository.clearAsync();
     }
 
@@ -313,5 +324,21 @@ public class DeadChestLoader {
 
     public DeadChestConfig getDataConfig() {
         return config;
+    }
+
+    private static void addPlayerData(final ChestData chestData) {
+        players.computeIfAbsent(UUID.fromString(chestData.getPlayerUUID()), k -> new HashSet<>())
+                .add(chestData.getChestLocation());
+    }
+
+    private static void removePlayerData(final ChestData chestData) {
+        final UUID playerUUID = UUID.fromString(chestData.getPlayerUUID());
+        Set<Location> set =  players.get(playerUUID);
+        if (set != null) {
+            set.remove(chestData.getChestLocation());
+            if (set.isEmpty()) {
+                players.remove(playerUUID);
+            }
+        }
     }
 }
