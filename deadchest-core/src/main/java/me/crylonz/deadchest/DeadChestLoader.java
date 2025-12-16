@@ -30,7 +30,7 @@ public class DeadChestLoader {
 
     public static Logger log = Logger.getLogger("Minecraft");
     public static FileManager fileManager;
-    public static List<ChestData> chestDataList;
+    private static List<ChestData> chestDataList;
     public static WorldGuardSoftDependenciesChecker wgsdc = null;
     public static ArrayList<Material> graveBlocks = new ArrayList<>();
     public static Localization local;
@@ -121,10 +121,15 @@ public class DeadChestLoader {
         db.close();
     }
 
-    public static void addChestData(final ChestData cd) {
-        chestDataList.add(cd);
+    public static void addChestData(final ChestData chestData) {
+        if(chestDataList == null)
+            setChestData(new ArrayList<>());
+        chestDataList.add(chestData);
     }
 
+    public static void setChestData(final List<ChestData> chestData) {
+        chestDataList = chestData;
+    }
 
     public static void removeChestData(@Nonnull final ChestData chest) {
         chest.removeArmorStand();
@@ -133,13 +138,13 @@ public class DeadChestLoader {
     }
 
     public static void removeChestDataList(@Nonnull final Collection<ChestData> chests) {
-        chests.forEach(chestData ->  chestDataList.remove(chestData));
+        chests.forEach(chestData -> chestDataList.remove(chestData));
         ChestDataRepository.removeBatchAsync(chests);
     }
 
     public static void removeChestData(@Nonnull final Location location) {
         chestDataList.removeIf(chestData -> {
-            if(chestData.getChestLocation().equals(location)){
+            if (chestData.getChestLocation().equals(location)) {
                 chestData.removeArmorStand();
                 chestData.remove();
                 return true;
@@ -149,22 +154,15 @@ public class DeadChestLoader {
     }
 
     public static List<ChestData> getChestDataList() {
-        if(chestDataList == null)
-            return null;
+        if (chestDataList == null)
+            return new ArrayList<>();
         return Collections.unmodifiableList(chestDataList);
     }
 
     public static void clearChestData() {
-        chestDataList.clear();
+        if (chestDataList != null)
+            chestDataList.clear();
         ChestDataRepository.clearAsync();
-    }
-
-    public static List<ChestData> getChestData(List<ChestData> chestData) {
-        return chestDataList = chestData;
-    }
-
-    public static void setChestData(List<ChestData> chestData) {
-        chestDataList = chestData;
     }
 
     public static void save() {

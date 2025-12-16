@@ -92,6 +92,7 @@ public class DeadChestManager {
         int count = 0;
         if (p != null) {
 
+            final List<ChestData> chestDataList = DeadChestLoader.getChestDataList();
             for (ChestData chestData : chestDataList) {
                 if (p.getUniqueId().toString().equals(chestData.getPlayerUUID()))
                     count++;
