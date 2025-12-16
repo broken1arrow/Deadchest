@@ -34,7 +34,7 @@ class BlockPlaceEventListenerTest {
         MockBukkit.getMock().addWorld(world);
         player = new PlayerMock(MockBukkit.getMock(), "Steve");
 
-        DeadChestLoader.chestDataList = new ArrayList<>();
+        DeadChestLoader.setChestData( new ArrayList<>());
         DeadChestLoader.local = mock(Localization.class);
         when(DeadChestLoader.local.get("loc_prefix")).thenReturn("[DC] ");
         when(DeadChestLoader.local.get("loc_doubleDC")).thenReturn("You can't place a double DeadChest!");
@@ -54,7 +54,7 @@ class BlockPlaceEventListenerTest {
 
         ChestData cd = mock(ChestData.class);
         when(cd.getChestLocation()).thenReturn(existingBlock.getLocation());
-        DeadChestLoader.chestDataList.add(cd);
+        DeadChestLoader.addChestData(cd);
 
         BlockMock newBlock = world.getBlockAt(1, 64, 0);
         newBlock.setType(Material.CHEST);

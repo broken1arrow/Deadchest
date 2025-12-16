@@ -11,12 +11,14 @@ import me.crylonz.deadchest.legacy.OldChestData;
 import me.crylonz.deadchest.utils.ConfigKey;
 import me.crylonz.deadchest.utils.DeadChestConfig;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -117,6 +119,56 @@ public class DeadChestLoader {
         ChestDataRepository.saveAllAsync(chestDataList);
         sqlExecutor.shutdown();
         db.close();
+    }
+
+    public static void addChestData(final ChestData cd) {
+        chestDataList.add(cd);
+    }
+
+
+    public static void removeChestData(@Nonnull final ChestData chest) {
+        chest.removeArmorStand();
+        chest.remove();
+        chestDataList.remove(chest);
+    }
+
+    public static void removeChestDataList(@Nonnull final Collection<ChestData> chests) {
+        chests.forEach(chestData ->  chestDataList.remove(chestData));
+        ChestDataRepository.removeBatchAsync(chests);
+    }
+
+    public static void removeChestData(@Nonnull final Location location) {
+        chestDataList.removeIf(chestData -> {
+            if(chestData.getChestLocation().equals(location)){
+                chestData.removeArmorStand();
+                chestData.remove();
+                return true;
+            }
+            return false;
+        });
+    }
+
+    public static List<ChestData> getChestDataList() {
+        if(chestDataList == null)
+            return null;
+        return Collections.unmodifiableList(chestDataList);
+    }
+
+    public static void clearChestData() {
+        chestDataList.clear();
+        ChestDataRepository.clearAsync();
+    }
+
+    public static List<ChestData> getChestData(List<ChestData> chestData) {
+        return chestDataList = chestData;
+    }
+
+    public static void setChestData(List<ChestData> chestData) {
+        chestDataList = chestData;
+    }
+
+    public static void save() {
+        ChestDataRepository.batchSave(chestDataList);
     }
 
     public void registerConfig() {

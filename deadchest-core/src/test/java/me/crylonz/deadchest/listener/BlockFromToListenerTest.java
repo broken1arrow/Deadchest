@@ -44,7 +44,7 @@ class BlockFromToListenerTest {
         fromBlock = world.getBlockAt(0, 64, 0);
         toBlock = world.getBlockAt(1, 64, 0);
 
-        DeadChestLoader.chestDataList = new ArrayList<>();
+        DeadChestLoader.setChestData( new ArrayList<>());
 
         graveBlocks.clear();
         graveBlocks.add(Material.CHEST);
@@ -59,7 +59,7 @@ class BlockFromToListenerTest {
         ChestData cd = mock(ChestData.class);
         when(cd.getChestLocation()).thenReturn(toBlock.getLocation());
 
-        DeadChestLoader.chestDataList.add(cd);
+        DeadChestLoader.addChestData(cd);
 
         BlockFromToEvent event = new BlockFromToEvent(fromBlock, toBlock);
         listener.onBlockFromToEvent(event);
@@ -84,7 +84,7 @@ class BlockFromToListenerTest {
         BlockMock otherBlock = world.getBlockAt(5, 64, 5);
         ChestData cd = mock(ChestData.class);
         when(cd.getChestLocation()).thenReturn(otherBlock.getLocation());
-        DeadChestLoader.chestDataList.add(cd);
+        DeadChestLoader.addChestData(cd);
 
         BlockFromToEvent event = new BlockFromToEvent(fromBlock, toBlock);
         listener.onBlockFromToEvent(event);

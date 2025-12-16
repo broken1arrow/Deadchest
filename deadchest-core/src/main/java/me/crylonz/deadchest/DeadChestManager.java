@@ -1,6 +1,5 @@
 package me.crylonz.deadchest;
 
-import me.crylonz.deadchest.db.ChestDataRepository;
 import me.crylonz.deadchest.utils.ConfigKey;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -14,10 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Iterator;
+import java.util.*;
 
 import static me.crylonz.deadchest.DeadChestLoader.*;
 import static me.crylonz.deadchest.utils.Utils.*;
@@ -32,21 +28,21 @@ public class DeadChestManager {
     public static int cleanAllDeadChests() {
 
         int chestDataRemoved = 0;
-        if (chestDataList != null && !chestDataList.isEmpty()) {
-            Iterator<ChestData> chestDataIt = chestDataList.iterator();
-            while (chestDataIt.hasNext()) {
-
-                ChestData chestData = chestDataIt.next();
+        final List<ChestData> chestDataList1 = DeadChestLoader.getChestDataList();
+        if (chestDataList1 != null && !chestDataList1.isEmpty()) {
+            final List<ChestData> chestDataRemove = new ArrayList<>();
+            for (final ChestData chestData : chestDataList1) {
                 if (chestData.getChestLocation().getWorld() != null) {
 
                     Location loc = chestData.getChestLocation();
                     loc.getWorld().getBlockAt(loc).setType(Material.AIR);
                     chestData.removeArmorStand();
-                    chestDataIt.remove();
+                    //todo not try to remove direcly from list chestDataIt.remove();
+                    chestDataRemove.add(chestData);
                     chestDataRemoved++;
                 }
             }
-            ChestDataRepository.saveAllAsync(chestDataList);
+            DeadChestLoader.removeChestDataList(chestDataRemove);
         }
         return chestDataRemoved;
     }
@@ -95,6 +91,7 @@ public class DeadChestManager {
     public static int playerDeadChestAmount(Player p) {
         int count = 0;
         if (p != null) {
+
             for (ChestData chestData : chestDataList) {
                 if (p.getUniqueId().toString().equals(chestData.getPlayerUUID()))
                     count++;
@@ -108,6 +105,7 @@ public class DeadChestManager {
      */
     static void reloadMetaData() {
 
+        final List<ChestData> chestDataList = DeadChestLoader.getChestDataList();
         for (ChestData cdata : chestDataList) {
             World world = cdata.getChestLocation().getWorld();
 

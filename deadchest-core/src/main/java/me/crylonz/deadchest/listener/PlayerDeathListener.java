@@ -1,6 +1,7 @@
 package me.crylonz.deadchest.listener;
 
 import me.crylonz.deadchest.ChestData;
+import me.crylonz.deadchest.DeadChestLoader;
 import me.crylonz.deadchest.Permission;
 import me.crylonz.deadchest.utils.ConfigKey;
 import me.crylonz.deadchest.utils.Utils;
@@ -364,7 +365,7 @@ public class PlayerDeathListener implements Listener {
         PlayerInventory inv = p.getInventory();
         ItemStack[] snapshot = inv.getContents();
         inv.setContents(itemsToStore);
-        chestDataList.add(cerateChestData(p, b, holoTime, holoName, inv));
+        DeadChestLoader.addChestData(cerateChestData(p, b, holoTime, holoName, inv));
         inv.setContents(snapshot);
     }
 

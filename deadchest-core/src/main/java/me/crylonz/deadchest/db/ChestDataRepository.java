@@ -83,6 +83,18 @@ public class ChestDataRepository {
         });
     }
 
+    public static void removeBatchAsync(@Nonnull final Collection<ChestData> chest) {
+        sqlExecutor.runAsync(() -> {
+            ChestDataRepository.remove(chest);
+        });
+    }
+
+
+    public static void clearAsync() {
+        sqlExecutor.runAsync(ChestDataRepository::clear);
+    }
+
+
     /**
      * Usage :
      * ChestDataRepository.findAllAsync(data -> {
@@ -376,6 +388,29 @@ public class ChestDataRepository {
         return false;
     }
 
+    public static void remove(@Nonnull final Collection<ChestData> chests) {
+        String sql = "DELETE FROM chest_data WHERE player_uuid = ? AND chest_world = ? AND chest_x = ? AND chest_y = ? AND chest_z = ?";
+
+        try (Connection conn = db.connection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            boolean batchEmpty = true;
+            for (ChestData chest : chests) {
+                Location chestLoc = chest.getChestLocation();
+                ps.setString(1, chest.getPlayerUUID());
+                ps.setString(2, chestLoc.getWorld().getName());
+                ps.setInt(3, chestLoc.getBlockX());
+                ps.setInt(4, chestLoc.getBlockY());
+                ps.setInt(5, chestLoc.getBlockZ());
+                ps.addBatch();
+                batchEmpty = false;
+            }
+            if (!batchEmpty)
+                ps.executeBatch();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static void remove(@Nonnull final ChestData chest) {
         String sql = "DELETE FROM chest_data WHERE player_uuid = ? AND chest_world = ? AND chest_x = ? AND chest_y = ? AND chest_z = ?";
 
@@ -389,6 +424,17 @@ public class ChestDataRepository {
             ps.setInt(4, chestLoc.getBlockY());
             ps.setInt(5, chestLoc.getBlockZ());
 
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void clear() {
+        String sql = "DELETE FROM chest_data";
+
+        try (Connection conn = db.connection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);

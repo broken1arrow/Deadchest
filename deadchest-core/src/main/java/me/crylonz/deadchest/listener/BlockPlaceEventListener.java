@@ -1,13 +1,15 @@
 package me.crylonz.deadchest.listener;
 
 import me.crylonz.deadchest.ChestData;
+import me.crylonz.deadchest.DeadChestLoader;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
-import static me.crylonz.deadchest.DeadChestLoader.chestDataList;
+import java.util.List;
+
 import static me.crylonz.deadchest.DeadChestLoader.local;
 
 public class BlockPlaceEventListener implements Listener {
@@ -19,6 +21,7 @@ public class BlockPlaceEventListener implements Listener {
             for (BlockFace face : BlockFace.values()) {
                 Block block = e.getBlock().getRelative(face);
                 if (block.getType() == Material.CHEST) {
+                    final List<ChestData> chestDataList = DeadChestLoader.getChestDataList();
                     for (ChestData cd : chestDataList) {
                         if (cd.getChestLocation().equals(block.getLocation())) {
                             e.setCancelled(true);
