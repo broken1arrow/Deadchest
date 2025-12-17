@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -52,7 +53,7 @@ class ClickListenerTest {
         DeadChestLoader.graveBlocks.add(Material.CHEST);
 
 
-        DeadChestLoader.setChestData( new ArrayList<>());
+        DeadChestLoader.setChestData(new ArrayList<>());
         DeadChestLoader.local = mock(Localization.class);
         DeadChestLoader.fileManager = mock(FileManager.class);
         when(DeadChestLoader.local.get("loc_prefix")).thenReturn("[DC] ");
@@ -88,9 +89,9 @@ class ClickListenerTest {
 
         ChestData cd = mock(ChestData.class);
         when(cd.getChestLocation()).thenReturn(chestBlock.getLocation());
-        when(cd.getPlayerUUID()).thenReturn("other-uuid");
+        //when(cd.getPlayerUUID()).thenReturn("other-uuid");
+        when(cd.getPlayerUUID()).thenReturn(UUID.randomUUID() + "");
         DeadChestLoader.addChestData(cd);
-
         PlayerInteractEvent event = new PlayerInteractEvent(player, Action.LEFT_CLICK_BLOCK,
                 new ItemStack(Material.CHEST), chestBlock, BlockFace.UP);
 

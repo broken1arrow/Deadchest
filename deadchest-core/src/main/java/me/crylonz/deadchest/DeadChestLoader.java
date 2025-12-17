@@ -341,11 +341,13 @@ public class DeadChestLoader {
     }
 
     private static void addPlayerData(final ChestData chestData) {
+        if (chestData.getPlayerUUID() == null) return;
         players.computeIfAbsent(UUID.fromString(chestData.getPlayerUUID()), k -> new HashSet<>())
                 .add(chestData.getChestLocation());
     }
 
     private static void removePlayerData(final ChestData chestData) {
+        if (chestData.getPlayerUUID() == null) return;
         final UUID playerUUID = UUID.fromString(chestData.getPlayerUUID());
         Set<Location> set = players.get(playerUUID);
         if (set != null) {
