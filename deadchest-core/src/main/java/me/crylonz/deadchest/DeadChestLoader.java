@@ -10,6 +10,7 @@ import me.crylonz.deadchest.deps.worldguard.WorldGuardSoftDependenciesChecker;
 import me.crylonz.deadchest.legacy.OldChestData;
 import me.crylonz.deadchest.utils.ConfigKey;
 import me.crylonz.deadchest.utils.DeadChestConfig;
+import me.crylonz.deadchest.utils.ExpiredActionType;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -123,14 +124,14 @@ public class DeadChestLoader {
     }
 
     public static void addChestData(final ChestData chestData) {
-        if(chestDataList == null)
+        if (chestDataList == null)
             setChestData(new ArrayList<>());
         addPlayerData(chestData);
         chestDataList.add(chestData);
     }
 
     public static void setChestData(final List<ChestData> chests) {
-        if(chests != null){
+        if (chests != null) {
             chests.forEach(DeadChestLoader::addPlayerData);
         }
         chestDataList = chests;
@@ -285,8 +286,11 @@ public class DeadChestLoader {
     public static void handleEvent() {
         if (chestDataList != null && !chestDataList.isEmpty()) {
 
-            Date now = new Date();
-            Iterator<ChestData> chestDataIt = chestDataList.iterator();
+            final Date now = new Date();
+            final Iterator<ChestData> chestDataIt = chestDataList.iterator();
+            final Set<ChestData> needUpdate = new HashSet<>();
+            final Set<ChestData> remove = new HashSet<>();
+
 
             while (chestDataIt.hasNext()) {
                 ChestData chestData = chestDataIt.next();
@@ -300,8 +304,13 @@ public class DeadChestLoader {
                 if (world != null) {
                     updateTimer(chestData, now);
 
-                    if (handleExpirateDeadChest(chestData, chestDataIt, now)) {
-                        isChangesNeedToBeSave = true;
+                    final ExpiredActionType expiredActionType = handleExpirateDeadChest(chestData, chestDataIt, now);
+                    if (expiredActionType != ExpiredActionType.NOT_EXPIRED) {
+                        if (expiredActionType == ExpiredActionType.FAIL_REMOVE_ARMORSTAND) {
+                            needUpdate.add(chestData);
+                        } else {
+                            remove.add(chestData);
+                        }
                         generateLog("Deadchest of [" + chestData.getPlayerName() + "] has expired in " + Objects.requireNonNull(chestData.getChestLocation().getWorld()).getName());
                     } else {
                         if (chestData.isChunkLoaded()) {
@@ -310,8 +319,13 @@ public class DeadChestLoader {
                     }
                 }
             }
+            if (!needUpdate.isEmpty()) {
+                ChestDataRepository.saveAllAsync(needUpdate);
+            }
+            if (!remove.isEmpty()) {
+                ChestDataRepository.removeBatchAsync(remove);
+            }
         }
-
         if (isChangesNeedToBeSave) {
             ChestDataRepository.saveAllAsync(chestDataList);
             isChangesNeedToBeSave = false;
@@ -333,7 +347,7 @@ public class DeadChestLoader {
 
     private static void removePlayerData(final ChestData chestData) {
         final UUID playerUUID = UUID.fromString(chestData.getPlayerUUID());
-        Set<Location> set =  players.get(playerUUID);
+        Set<Location> set = players.get(playerUUID);
         if (set != null) {
             set.remove(chestData.getChestLocation());
             if (set.isEmpty()) {

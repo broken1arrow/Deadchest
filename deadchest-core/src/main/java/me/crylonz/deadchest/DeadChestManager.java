@@ -1,6 +1,7 @@
 package me.crylonz.deadchest;
 
 import me.crylonz.deadchest.utils.ConfigKey;
+import me.crylonz.deadchest.utils.ExpiredActionType;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -165,7 +166,7 @@ public class DeadChestManager {
     }
 
 
-    public static boolean handleExpirateDeadChest(ChestData chestData, Iterator<ChestData> chestDataIt, Date date) {
+    public static ExpiredActionType handleExpirateDeadChest(ChestData chestData, Iterator<ChestData> chestDataIt, Date date) {
         if (chestData.getChestDate().getTime() + config.getInt(ConfigKey.DEADCHEST_DURATION) * 1000L < date.getTime() && !chestData.isInfinity()
                 && config.getInt(ConfigKey.DEADCHEST_DURATION) != 0) {
 
@@ -185,13 +186,12 @@ public class DeadChestManager {
                     chestData.cleanInventory();
                 }
             }
-            if (chestData.removeArmorStand()) {
-                chestDataIt.remove();
-            }
-
-            return true;
+            //todo should use another way to remove chestDataIt.remove();
+            if (chestData.removeArmorStand())
+                return ExpiredActionType.REMOVED_ARMORSTAND;
+            return ExpiredActionType.FAIL_REMOVE_ARMORSTAND;
         }
-        return false;
+        return ExpiredActionType.NOT_EXPIRED;
     }
 
     public static void updateTimer(ChestData chestData, Date date) {
