@@ -1,5 +1,6 @@
 package me.crylonz.deadchest;
 
+import me.crylonz.deadchest.cache.DeadChestCache;
 import me.crylonz.deadchest.utils.ConfigKey;
 import me.crylonz.deadchest.utils.ExpiredActionType;
 import org.bukkit.Bukkit;
@@ -29,10 +30,12 @@ public class DeadChestManager {
     public static int cleanAllDeadChests() {
 
         int chestDataRemoved = 0;
-        final List<ChestData> chestDataList1 = DeadChestLoader.getChestDataList();
-        if (chestDataList1 != null && !chestDataList1.isEmpty()) {
+        final DeadChestCache deadChestCache = DeadChestLoader.getChestDataCache();
+        final Map <Location, ChestData> chestDataList = deadChestCache.getAllChestData();
+
+        if (chestDataList != null && !chestDataList.isEmpty()) {
             final List<ChestData> chestDataRemove = new ArrayList<>();
-            for (final ChestData chestData : chestDataList1) {
+            for (final ChestData chestData : chestDataList.values()) {
                 if (chestData.getChestLocation().getWorld() != null) {
 
                     Location loc = chestData.getChestLocation();
@@ -43,7 +46,7 @@ public class DeadChestManager {
                     chestDataRemoved++;
                 }
             }
-            DeadChestLoader.removeChestDataList(chestDataRemove);
+            deadChestCache.removeChestDataList(chestDataRemove);
         }
         return chestDataRemoved;
     }
@@ -92,12 +95,12 @@ public class DeadChestManager {
     public static int playerDeadChestAmount(Player p) {
         int count = 0;
         if (p != null) {
-
-            final List<ChestData> chestDataList = DeadChestLoader.getChestDataList();
+            count = DeadChestLoader.getChestDataCache().getPlayerChestAmount(p);
+       /*     final List<ChestData> chestDataList = DeadChestLoader.getChestData().getChestDataList();
             for (ChestData chestData : chestDataList) {
                 if (p.getUniqueId().toString().equals(chestData.getPlayerUUID()))
                     count++;
-            }
+            }*/
         }
         return count;
     }
@@ -107,8 +110,8 @@ public class DeadChestManager {
      */
     static void reloadMetaData() {
 
-        final List<ChestData> chestDataList = DeadChestLoader.getChestDataList();
-        for (ChestData cdata : chestDataList) {
+        final Map<Location, ChestData> chestDataList = getChestDataCache().getAllChestData();
+        for (ChestData cdata : chestDataList.values()) {
             World world = cdata.getChestLocation().getWorld();
 
             if (world != null) {
@@ -166,7 +169,7 @@ public class DeadChestManager {
     }
 
 
-    public static ExpiredActionType handleExpirateDeadChest(ChestData chestData, Iterator<ChestData> chestDataIt, Date date) {
+    public static ExpiredActionType handleExpirateDeadChest(ChestData chestData, Date date) {
         if (chestData.getChestDate().getTime() + config.getInt(ConfigKey.DEADCHEST_DURATION) * 1000L < date.getTime() && !chestData.isInfinity()
                 && config.getInt(ConfigKey.DEADCHEST_DURATION) != 0) {
 

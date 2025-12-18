@@ -1,5 +1,6 @@
 package me.crylonz.deadchest;
 
+import me.crylonz.deadchest.cache.DeadChestCache;
 import me.crylonz.deadchest.commands.DCCommandExecutor;
 import me.crylonz.deadchest.commands.DCTabCompletion;
 import me.crylonz.deadchest.db.ChestDataRepository;
@@ -20,6 +21,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -31,8 +33,8 @@ public class DeadChestLoader {
 
     public static Logger log = Logger.getLogger("Minecraft");
     public static FileManager fileManager;
-    private static List<ChestData> chestDataList;
-    private static final Map<UUID, Set<Location>> players = new HashMap<>();
+    private static final DeadChestCache chestData = new DeadChestCache();
+
     public static WorldGuardSoftDependenciesChecker wgsdc = null;
     public static ArrayList<Material> graveBlocks = new ArrayList<>();
     public static Localization local;
@@ -73,7 +75,6 @@ public class DeadChestLoader {
 
         ChestDataRepository.initTable(/* migrate old chestData.yml config */ OldChestData::migrateOldChestData);
 
-        chestDataList = new ArrayList<>();
         local = new Localization();
 
         registerConfig();
@@ -118,67 +119,18 @@ public class DeadChestLoader {
 
     public void disable() {
 
-        ChestDataRepository.saveAllAsync(chestDataList);
+        ChestDataRepository.saveAllAsync(getChestDataCache().getAllChestData().values());
         sqlExecutor.shutdown();
         db.close();
     }
 
-    public static void addChestData(final ChestData chestData) {
-        if (chestDataList == null)
-            setChestData(new ArrayList<>());
-        addPlayerData(chestData);
-        chestDataList.add(chestData);
+    public static DeadChestCache getChestDataCache() {
+        return chestData;
     }
 
-    public static void setChestData(final List<ChestData> chests) {
-        if (chests != null) {
-            chests.forEach(DeadChestLoader::addPlayerData);
-        }
-        chestDataList = chests;
-    }
-
-    public static void removeChestData(@Nonnull final ChestData chest) {
-        chest.removeArmorStand();
-        chest.remove();
-        removePlayerData(chest);
-        chestDataList.remove(chest);
-    }
-
-    public static void removeChestData(@Nonnull final Location location) {
-        chestDataList.removeIf(chestData -> {
-            if (chestData.getChestLocation().equals(location)) {
-                chestData.removeArmorStand();
-                chestData.remove();
-                removePlayerData(chestData);
-                return true;
-            }
-            return false;
-        });
-    }
-
-    public static void removeChestDataList(@Nonnull final Collection<ChestData> chests) {
-        chests.forEach(chestData -> {
-            chestDataList.remove(chestData);
-            removePlayerData(chestData);
-        });
-        ChestDataRepository.removeBatchAsync(chests);
-    }
-
-    public static List<ChestData> getChestDataList() {
-        if (chestDataList == null)
-            return new ArrayList<>();
-        return Collections.unmodifiableList(chestDataList);
-    }
-
-    public static void clearChestData() {
-        if (chestDataList != null)
-            chestDataList.clear();
-        players.clear();
-        ChestDataRepository.clearAsync();
-    }
-
-    public static void save() {
-        ChestDataRepository.batchSave(chestDataList);
+    @Nullable
+    public static ChestData getChestData(@Nonnull Location location) {
+        return chestData.getChestData(location);
     }
 
     public void registerConfig() {
@@ -222,7 +174,7 @@ public class DeadChestLoader {
         }
 
         // database (chestData)
-        chestDataList = ChestDataRepository.findAll();
+        //chestDataList = ChestDataRepository.findAll();
 
         // ignore list
         loadIgnoreIntoInventory(ignoreList);
@@ -284,19 +236,19 @@ public class DeadChestLoader {
     }
 
     public static void handleEvent() {
-        if (chestDataList != null && !chestDataList.isEmpty()) {
-
+        final DeadChestCache deadChestCache = getChestDataCache();
+        final Map<Location, ChestData> allChestData = deadChestCache.getAllChestData();
+        if (!allChestData.isEmpty()) {
             final Date now = new Date();
-            final Iterator<ChestData> chestDataIt = chestDataList.iterator();
             final Set<ChestData> needUpdate = new HashSet<>();
             final Set<ChestData> remove = new HashSet<>();
+            final Set<ChestData> update = new HashSet<>();
 
+            for (Map.Entry<Location, ChestData> chestEntry : allChestData.entrySet()) {
+                final ChestData chestData = chestEntry.getValue();
 
-            while (chestDataIt.hasNext()) {
-                ChestData chestData = chestDataIt.next();
                 if (chestData == null) {
-                    generateLog("Deadchest of [null] has invalid data set. Get removed.");
-                    chestDataIt.remove();
+                    generateLog("Deadchest of [null] has invalid data set.");
                     continue;
                 }
                 World world = chestData.getChestLocation().getWorld();
@@ -304,7 +256,7 @@ public class DeadChestLoader {
                 if (world != null) {
                     updateTimer(chestData, now);
 
-                    final ExpiredActionType expiredActionType = handleExpirateDeadChest(chestData, chestDataIt, now);
+                    final ExpiredActionType expiredActionType = handleExpirateDeadChest(chestData, now);
                     if (expiredActionType != ExpiredActionType.NOT_EXPIRED) {
                         if (expiredActionType == ExpiredActionType.FAIL_REMOVE_ARMORSTAND) {
                             needUpdate.add(chestData);
@@ -315,6 +267,7 @@ public class DeadChestLoader {
                     } else {
                         if (chestData.isChunkLoaded()) {
                             isChangesNeedToBeSave = replaceDeadChestIfItDisappears(chestData);
+                            update.add(chestData);
                         }
                     }
                 }
@@ -325,10 +278,10 @@ public class DeadChestLoader {
             if (!remove.isEmpty()) {
                 ChestDataRepository.removeBatchAsync(remove);
             }
-        }
-        if (isChangesNeedToBeSave) {
-            ChestDataRepository.saveAllAsync(chestDataList);
-            isChangesNeedToBeSave = false;
+            if (isChangesNeedToBeSave && !update.isEmpty()) {
+                ChestDataRepository.saveAllAsync(update);
+                isChangesNeedToBeSave = false;
+            }
         }
     }
 
@@ -340,21 +293,4 @@ public class DeadChestLoader {
         return config;
     }
 
-    private static void addPlayerData(final ChestData chestData) {
-        if (chestData.getPlayerUUID() == null) return;
-        players.computeIfAbsent(UUID.fromString(chestData.getPlayerUUID()), k -> new HashSet<>())
-                .add(chestData.getChestLocation());
-    }
-
-    private static void removePlayerData(final ChestData chestData) {
-        if (chestData.getPlayerUUID() == null) return;
-        final UUID playerUUID = UUID.fromString(chestData.getPlayerUUID());
-        Set<Location> set = players.get(playerUUID);
-        if (set != null) {
-            set.remove(chestData.getChestLocation());
-            if (set.isEmpty()) {
-                players.remove(playerUUID);
-            }
-        }
-    }
 }

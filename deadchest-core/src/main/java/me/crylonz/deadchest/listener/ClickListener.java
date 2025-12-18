@@ -7,6 +7,7 @@ import me.crylonz.deadchest.Permission;
 import me.crylonz.deadchest.utils.ConfigKey;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.ExperienceOrb;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -19,7 +20,8 @@ import org.bukkit.inventory.PlayerInventory;
 import java.util.ArrayList;
 import java.util.List;
 
-import static me.crylonz.deadchest.DeadChestLoader.*;
+import static me.crylonz.deadchest.DeadChestLoader.config;
+import static me.crylonz.deadchest.DeadChestLoader.local;
 import static me.crylonz.deadchest.utils.Utils.generateLog;
 import static me.crylonz.deadchest.utils.Utils.isGraveBlock;
 
@@ -46,13 +48,23 @@ public class ClickListener implements Listener {
      * Checks if the player clicks near a DeadChest
      */
     protected boolean isNearGraveChest(PlayerInteractEvent e) {
-        final List<ChestData> chestDataList = DeadChestLoader.getChestDataList();
-        for (ChestData cd : chestDataList) {
-            if (cd.getChestLocation().getWorld() == e.getPlayer().getWorld()
-                    && e.getClickedBlock().getWorld() == e.getPlayer().getWorld()
-                    && cd.getChestLocation().distance(e.getClickedBlock().getLocation()) <= 1) {
+        final Block clickedBlock = e.getClickedBlock();
+        if (clickedBlock == null)
+            return false;
+        ChestData chestData = DeadChestLoader.getChestData(clickedBlock.getLocation());
+        if (chestData != null) {
+            return true;
+        }
+
+        for (BlockFace face : CHECK_FACES) {
+            final Block relative = clickedBlock.getRelative(face);
+            final Location chestLoc = relative.getLocation();
+            chestData = DeadChestLoader.getChestData(chestLoc);
+
+            if (chestData != null) {
                 return true;
             }
+
         }
         return false;
     }
@@ -64,17 +76,12 @@ public class ClickListener implements Listener {
         Player player = e.getPlayer();
         String playerUUID = player.getUniqueId().toString();
         boolean playerHasPermission = player.hasPermission(Permission.CHESTPASS.label);
-
-        final List<ChestData> chestDataList = DeadChestLoader.getChestDataList();
-        for (ChestData cd : chestDataList) {
-            if (cd.getChestLocation().equals(block.getLocation())) {
-                if (canOpenChest(cd, player, playerUUID, playerHasPermission)) {
-                    processChestPickup(e, cd, block, player);
-                } else {
-                    denyChestAccess(e, player);
-                }
-                break;
-            }
+        final ChestData chestData = DeadChestLoader.getChestData(block.getLocation());
+        if (chestData == null) return;
+        if (canOpenChest(chestData, player, playerUUID, playerHasPermission)) {
+            processChestPickup(e, chestData, block, player);
+        } else {
+            denyChestAccess(e, player);
         }
     }
 
@@ -195,9 +202,18 @@ public class ClickListener implements Listener {
      */
     private void cleanupChest(ChestData cd, Block block, Player player) {
         block.setType(Material.AIR);
-        DeadChestLoader.removeChestData(cd);
+        DeadChestLoader.getChestDataCache().removeChestData(cd);
         //todo remove? ChestDataRepository.saveAllAsync(chestDataList);
         block.getWorld().playEffect(block.getLocation(), Effect.MOBSPAWNER_FLAMES, 10);
         player.playSound(block.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 10, 1);
     }
+
+    private static final BlockFace[] CHECK_FACES = {
+            BlockFace.NORTH,
+            BlockFace.SOUTH,
+            BlockFace.EAST,
+            BlockFace.WEST,
+            BlockFace.UP,
+            BlockFace.DOWN
+    };
 }

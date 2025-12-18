@@ -5,6 +5,7 @@ import be.seeseemelk.mockbukkit.ServerMock;
 import be.seeseemelk.mockbukkit.block.BlockMock;
 import me.crylonz.deadchest.ChestData;
 import me.crylonz.deadchest.DeadChestLoader;
+import me.crylonz.deadchest.cache.DeadChestCache;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -27,12 +28,14 @@ class PistonListenerTest {
 
     private ServerMock server;
     private PistonListener listener;
+    private DeadChestCache deadChest;
 
     @BeforeEach
     void setUp() {
         server = MockBukkit.mock();
         listener = new PistonListener();
-        DeadChestLoader.setChestData(new ArrayList<>());
+        deadChest = DeadChestLoader.getChestDataCache();
+        deadChest.setChestData(new ArrayList<>());
     }
 
     @AfterEach
@@ -51,7 +54,7 @@ class PistonListenerTest {
 
         ChestData cd = mock(ChestData.class);
         when(cd.getChestLocation()).thenReturn(loc);
-        DeadChestLoader.addChestData(cd);
+        deadChest.addChestData(cd);
 
         List<Block> moved = new ArrayList<>();
         moved.add(headBlock);

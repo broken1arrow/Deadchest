@@ -8,8 +8,6 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
-import java.util.List;
-
 import static me.crylonz.deadchest.DeadChestLoader.local;
 
 public class BlockPlaceEventListener implements Listener {
@@ -21,13 +19,10 @@ public class BlockPlaceEventListener implements Listener {
             for (BlockFace face : BlockFace.values()) {
                 Block block = e.getBlock().getRelative(face);
                 if (block.getType() == Material.CHEST) {
-                    final List<ChestData> chestDataList = DeadChestLoader.getChestDataList();
-                    for (ChestData cd : chestDataList) {
-                        if (cd.getChestLocation().equals(block.getLocation())) {
-                            e.setCancelled(true);
-                            e.getPlayer().sendMessage(local.get("loc_prefix") + local.get("loc_doubleDC"));
-                            return;
-                        }
+                    final ChestData chestData = DeadChestLoader.getChestData(block.getLocation());
+                    if(chestData != null){
+                        e.setCancelled(true);
+                        e.getPlayer().sendMessage(local.get("loc_prefix") + local.get("loc_doubleDC"));
                     }
                 }
             }

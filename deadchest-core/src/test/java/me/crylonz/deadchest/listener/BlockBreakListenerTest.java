@@ -7,9 +7,11 @@ import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import me.crylonz.deadchest.ChestData;
 import me.crylonz.deadchest.DeadChestLoader;
 import me.crylonz.deadchest.Localization;
+import me.crylonz.deadchest.cache.DeadChestCache;
 import me.crylonz.deadchest.utils.ConfigKey;
 import me.crylonz.deadchest.utils.DeadChestConfig;
 import me.crylonz.deadchest.utils.Utils;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.junit.jupiter.api.*;
@@ -17,6 +19,7 @@ import org.mockito.MockedStatic;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -30,6 +33,7 @@ class BlockBreakListenerTest {
     private BlockBreakListener listener;
 
     private static List<ChestData> chestDataBackup;
+    private DeadChestCache chestData;
 
     @BeforeAll
     static void beforeAll() {
@@ -48,15 +52,16 @@ class BlockBreakListenerTest {
         block = world.getBlockAt(0, 64, 0);
         listener = new BlockBreakListener();
 
-        final List<ChestData> chestDataList = DeadChestLoader.getChestDataList();
+        chestData = DeadChestLoader.getChestDataCache();
+        final Map<Location, ChestData> chestDataList = chestData.getAllChestData();
         if (chestDataList == null) {
-            DeadChestLoader.setChestData(new ArrayList<>());
+            chestData.setChestData(new ArrayList<>());
         }
     }
 
     @AfterEach
     void tearDown() {
-        DeadChestLoader.clearChestData();
+        DeadChestLoader.getChestDataCache().clearChestData();
     }
 
     @Test
@@ -73,8 +78,8 @@ class BlockBreakListenerTest {
 
             ChestData cd = mock(ChestData.class);
             when(cd.getChestLocation()).thenReturn(block.getLocation());
-            DeadChestLoader.clearChestData();
-            DeadChestLoader.addChestData(cd);
+            chestData.clearChestData();
+            chestData.addChestData(cd);
 
             block.setType(Material.CHEST);
 

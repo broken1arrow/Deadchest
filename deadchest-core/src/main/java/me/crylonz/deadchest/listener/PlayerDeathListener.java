@@ -365,7 +365,7 @@ public class PlayerDeathListener implements Listener {
         PlayerInventory inv = p.getInventory();
         ItemStack[] snapshot = inv.getContents();
         inv.setContents(itemsToStore);
-        DeadChestLoader.addChestData(cerateChestData(p, b, holoTime, holoName, inv));
+        DeadChestLoader.getChestDataCache().addChestData(cerateChestData(p, b, holoTime, holoName, inv));
         inv.setContents(snapshot);
     }
 
