@@ -19,7 +19,7 @@ public final class ChestData {
     private List<ItemStack> inventory;
     private Location chestLocation;
     private String playerName;
-    private String playerUUID;
+    private UUID playerUUID;
     private Date chestDate;
     private boolean isInfinity;
     private boolean isRemovedBlock;
@@ -57,7 +57,7 @@ public final class ChestData {
             this.inventory = Arrays.asList(inv.getContents());
             this.chestLocation = chestLocation.clone();
             this.playerName = p.getName();
-            this.playerUUID = String.valueOf(p.getUniqueId());
+            this.playerUUID = p.getUniqueId();
             this.chestDate = new Date();
             this.isInfinity = isInfinity;
             this.isRemovedBlock = false;
@@ -73,7 +73,7 @@ public final class ChestData {
     public ChestData(final List<ItemStack> inventory,
                      final Location chestLocation,
                      final String playerName,
-                     final String playerUUID,
+                     final UUID playerUUID,
                      final Date chestDate,
                      final boolean isInfinity,
                      final boolean isRemovedBlock,
@@ -136,8 +136,12 @@ public final class ChestData {
         return playerName;
     }
 
-    public String getPlayerUUID() {
+    public UUID getPlayerUUID() {
         return playerUUID;
+    }
+
+    public String getPlayerStringUUID() {
+        return playerUUID+"";
     }
 
     public Date getChestDate() {

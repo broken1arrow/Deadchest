@@ -93,7 +93,7 @@ class ClickListenerTest {
         ChestData cd = mock(ChestData.class);
         when(cd.getChestLocation()).thenReturn(chestBlock.getLocation());
         //when(cd.getPlayerUUID()).thenReturn("other-uuid");
-        when(cd.getPlayerUUID()).thenReturn(UUID.randomUUID() + "");
+        when(cd.getPlayerUUID()).thenReturn(UUID.randomUUID());
         deadChest.addChestData(cd);
         PlayerInteractEvent event = new PlayerInteractEvent(player, Action.LEFT_CLICK_BLOCK,
                 new ItemStack(Material.CHEST), chestBlock, BlockFace.UP);
@@ -113,7 +113,7 @@ class ClickListenerTest {
 
         ChestData cd = mock(ChestData.class);
         when(cd.getChestLocation()).thenReturn(chestBlock.getLocation());
-        when(cd.getPlayerUUID()).thenReturn(player.getUniqueId().toString());
+        when(cd.getPlayerUUID()).thenReturn(player.getUniqueId());
         when(cd.getInventory()).thenReturn(Arrays.asList(new ItemStack(Material.DIAMOND), new ItemStack(Material.APPLE)));
         when(cd.getXpStored()).thenReturn(5);
         deadChest.addChestData(cd);
@@ -157,7 +157,7 @@ class ClickListenerTest {
 
         ChestData cd = mock(ChestData.class);
         when(cd.getChestLocation()).thenReturn(chestBlock.getLocation());
-        when(cd.getPlayerUUID()).thenReturn(player.getUniqueId().toString());
+        when(cd.getPlayerUUID()).thenReturn(player.getUniqueId());
         deadChest.addChestData(cd);
 
         PlayerInteractEvent event = new PlayerInteractEvent(player, Action.LEFT_CLICK_BLOCK,
