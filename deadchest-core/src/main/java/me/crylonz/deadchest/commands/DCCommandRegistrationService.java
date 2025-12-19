@@ -168,7 +168,7 @@ public class DCCommandRegistrationService extends DCCommandRegistration {
                     if (!chestDataList.isEmpty()) {
                         sender.sendMessage(local.get("loc_prefix") + local.get("loc_dclistown") + " :");
                         for (ChestData data : chestDataList.values()) {
-                            if (data.getPlayerUUID().equalsIgnoreCase(player.getUniqueId().toString())) {
+                            if (data.getPlayerUUID().equals(player.getUniqueId())) {
                                 displayChestData(now, data);
                             }
                         }
@@ -248,7 +248,7 @@ public class DCCommandRegistrationService extends DCCommandRegistration {
             for (ChestData data : chestDataList.values()) {
                 if (data.getPlayerName().equalsIgnoreCase(args[1])) {
 
-                    targetPlayer = Bukkit.getPlayer(UUID.fromString(data.getPlayerUUID()));
+                    targetPlayer = Bukkit.getPlayer(data.getPlayerUUID());
 
                     if (targetPlayer != null && player.isOnline()) {
                         for (ItemStack itemStack : data.getInventory()) {

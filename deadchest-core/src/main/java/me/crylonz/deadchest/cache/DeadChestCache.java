@@ -124,13 +124,13 @@ public class DeadChestCache {
 
     private void addPlayerData(final ChestData chestData) {
         if (chestData.getPlayerUUID() == null) return;
-        players.computeIfAbsent(UUID.fromString(chestData.getPlayerUUID()), k -> new HashSet<>())
+        players.computeIfAbsent(chestData.getPlayerUUID(), k -> new HashSet<>())
                 .add(chestData.getChestLocation());
     }
 
     private void removePlayerData(final ChestData chestData) {
         if (chestData.getPlayerUUID() == null) return;
-        final UUID playerUUID = UUID.fromString(chestData.getPlayerUUID());
+        final UUID playerUUID = chestData.getPlayerUUID();
         Set<Location> set = players.get(playerUUID);
         if (set != null) {
             set.remove(chestData.getChestLocation());

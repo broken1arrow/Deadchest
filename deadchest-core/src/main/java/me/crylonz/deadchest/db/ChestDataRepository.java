@@ -130,7 +130,7 @@ public class ChestDataRepository {
                 Location chestLoc = chest.getChestLocation();
                 Location holoLoc = chest.getHolographicTimer();
 
-                ps.setString(1, chest.getPlayerUUID());
+                ps.setString(1, chest.getPlayerStringUUID());
                 ps.setString(2, chest.getPlayerName());
 
                 ps.setString(3, chestLoc.getWorld().getName());
@@ -197,7 +197,7 @@ public class ChestDataRepository {
                     Location holoLoc = chest.getHolographicTimer();
 
                     // Check if row exists
-                    psCheck.setString(1, chest.getPlayerUUID());
+                    psCheck.setString(1, chest.getPlayerStringUUID());
                     psCheck.setString(2, chestLoc.getWorld().getName());
                     psCheck.setInt(3, chestLoc.getBlockX());
                     psCheck.setInt(4, chestLoc.getBlockY());
@@ -228,7 +228,7 @@ public class ChestDataRepository {
                         psUpdate.setInt(i++, chest.getXpStored());
                         psUpdate.setBytes(i++, ItemBytes.toBytesList(chest.getInventory()));
 
-                        psUpdate.setString(i++, chest.getPlayerUUID());
+                        psUpdate.setString(i++, chest.getPlayerStringUUID());
                         psUpdate.setString(i++, chestLoc.getWorld().getName());
                         psUpdate.setInt(i++, chestLoc.getBlockX());
                         psUpdate.setInt(i++, chestLoc.getBlockY());
@@ -279,7 +279,7 @@ public class ChestDataRepository {
             Location chestLoc = chest.getChestLocation();
             Location holoLoc = chest.getHolographicTimer();
 
-            psDublicate.setString(1, chest.getPlayerUUID());
+            psDublicate.setString(1, chest.getPlayerStringUUID());
             psDublicate.setString(2, chestLoc.getWorld().getName());
             psDublicate.setInt(3, chestLoc.getBlockX());
             psDublicate.setInt(4, chestLoc.getBlockY());
@@ -308,7 +308,7 @@ public class ChestDataRepository {
             ps.setInt(13, chest.getXpStored());
             ps.setBytes(14, ItemBytes.toBytesList(chest.getInventory()));
 
-            ps.setString(15, chest.getPlayerUUID());
+            ps.setString(15, chest.getPlayerStringUUID());
             ps.setString(16, chestLoc.getWorld().getName());
             ps.setInt(17, chestLoc.getBlockX());
             ps.setInt(18, chestLoc.getBlockY());
@@ -344,7 +344,7 @@ public class ChestDataRepository {
             Location chestLoc = chest.getChestLocation();
             Location holoLoc = chest.getHolographicTimer();
 
-            psDublicate.setString(1, chest.getPlayerUUID());
+            psDublicate.setString(1, chest.getPlayerStringUUID());
             psDublicate.setString(2, chestLoc.getWorld().getName());
             psDublicate.setInt(3, chestLoc.getBlockX());
             psDublicate.setInt(4, chestLoc.getBlockY());
@@ -354,7 +354,7 @@ public class ChestDataRepository {
                     return true;
             }
 
-            ps.setString(1, chest.getPlayerUUID());
+            ps.setString(1, chest.getPlayerStringUUID());
             ps.setString(2, chest.getPlayerName());
 
             ps.setString(3, chestLoc.getWorld().getName());
@@ -396,7 +396,7 @@ public class ChestDataRepository {
             boolean batchEmpty = true;
             for (ChestData chest : chests) {
                 Location chestLoc = chest.getChestLocation();
-                ps.setString(1, chest.getPlayerUUID());
+                ps.setString(1, chest.getPlayerStringUUID());
                 ps.setString(2, chestLoc.getWorld().getName());
                 ps.setInt(3, chestLoc.getBlockX());
                 ps.setInt(4, chestLoc.getBlockY());
@@ -418,7 +418,7 @@ public class ChestDataRepository {
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             Location chestLoc = chest.getChestLocation();
-            ps.setString(1, chest.getPlayerUUID());
+            ps.setString(1, chest.getPlayerStringUUID());
             ps.setString(2, chestLoc.getWorld().getName());
             ps.setInt(3, chestLoc.getBlockX());
             ps.setInt(4, chestLoc.getBlockY());
@@ -477,7 +477,7 @@ public class ChestDataRepository {
                 ItemBytes.fromBytesList(rs.getBytes("inventory")),
                 chestLoc,
                 rs.getString("player_name"),
-                rs.getString("player_uuid"),
+                UUID.fromString(rs.getString("player_uuid")),
                 new Date(rs.getLong("chest_date")),
                 rs.getBoolean("is_infinity"),
                 rs.getBoolean("is_removed_block"),
