@@ -4,7 +4,6 @@ import me.crylonz.deadchest.ChestData;
 import me.crylonz.deadchest.DeadChestLoader;
 import me.crylonz.deadchest.Permission;
 import me.crylonz.deadchest.cache.DeadChestCache;
-import me.crylonz.deadchest.db.ChestDataRepository;
 import me.crylonz.deadchest.utils.ConfigKey;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -32,7 +31,6 @@ public class DCCommandRegistrationService extends DCCommandRegistration {
     public void registerReload() {
         registerCommand("dc reload", Permission.ADMIN.label, () -> {
             fileManager.reloadLocalizationConfig();
-            DeadChestLoader.getChestDataCache().setChestData(ChestDataRepository.findAll());
             loadIgnoreIntoInventory(ignoreList);
             DeadChestLoader.plugin.reloadConfig();
             plugin.registerConfig();
