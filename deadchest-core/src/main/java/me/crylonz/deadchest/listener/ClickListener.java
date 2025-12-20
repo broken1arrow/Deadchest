@@ -19,6 +19,7 @@ import org.bukkit.inventory.PlayerInventory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static me.crylonz.deadchest.DeadChestLoader.config;
 import static me.crylonz.deadchest.DeadChestLoader.local;
@@ -74,7 +75,7 @@ public class ClickListener implements Listener {
      */
     protected void handleChestInteraction(PlayerInteractEvent e, Block block) {
         Player player = e.getPlayer();
-        String playerUUID = player.getUniqueId().toString();
+        UUID playerUUID = player.getUniqueId();
         boolean playerHasPermission = player.hasPermission(Permission.CHESTPASS.label);
         final ChestData chestData = DeadChestLoader.getChestData(block.getLocation());
         if (chestData == null) return;
@@ -88,7 +89,7 @@ public class ClickListener implements Listener {
     /**
      * Checks if the player has the right to open the chest
      */
-    private boolean canOpenChest(ChestData cd, Player player, String playerUUID, boolean hasPerm) {
+    private boolean canOpenChest(ChestData cd, Player player, UUID playerUUID, boolean hasPerm) {
         if (!config.getBoolean(ConfigKey.ONLY_OWNER_CAN_OPEN_CHEST)) return true;
         if (playerUUID.equals(cd.getPlayerUUID())) return true;
         if (hasPerm) return true;

@@ -23,7 +23,7 @@ public final class OldChestData implements ConfigurationSerializable {
     private List<ItemStack> inventory;
     private Location chestLocation;
     private String playerName;
-    private String playerUUID;
+    private UUID playerUUID;
     private Date chestDate;
     private boolean isInfinity;
     private boolean isRemovedBlock;
@@ -61,7 +61,7 @@ public final class OldChestData implements ConfigurationSerializable {
             this.inventory = Arrays.asList(inv.getContents());
             this.chestLocation = chestLocation.clone();
             this.playerName = p.getName();
-            this.playerUUID = String.valueOf(p.getUniqueId());
+            this.playerUUID = p.getUniqueId();
             this.chestDate = new Date();
             this.isInfinity = isInfinity;
             this.isRemovedBlock = false;
@@ -77,7 +77,7 @@ public final class OldChestData implements ConfigurationSerializable {
     public OldChestData(final List<ItemStack> inventory,
                         final Location chestLocation,
                         final String playerName,
-                        final String playerUUID,
+                        final UUID playerUUID,
                         final Date chestDate,
                         final boolean isInfinity,
                         final boolean isRemovedBlock,
@@ -118,7 +118,7 @@ public final class OldChestData implements ConfigurationSerializable {
                 (List<ItemStack>) map.get("inventory"),
                 myloc,
                 (String) map.get("playerName"),
-                (String) map.get("playerUUID"),
+                UUID.fromString((String) map.get("playerUUID")),
                 (Date) map.get("chestDate"),
                 (boolean) map.get("isInfinity"),
                 map.get("isRemovedBlock") != null && (boolean) map.get("isRemovedBlock"), // compatiblity under 4.14
@@ -186,7 +186,7 @@ public final class OldChestData implements ConfigurationSerializable {
         return playerName;
     }
 
-    public String getPlayerUUID() {
+    public UUID getPlayerUUID() {
         return playerUUID;
     }
 

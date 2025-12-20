@@ -141,7 +141,7 @@ public final class ChestData {
     }
 
     public String getPlayerStringUUID() {
-        return playerUUID+"";
+        return playerUUID + "";
     }
 
     public Date getChestDate() {
