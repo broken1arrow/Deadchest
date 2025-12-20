@@ -20,6 +20,16 @@ public class DeadChestCache {
             setChestData(new ArrayList<>());
         addPlayerData(chestData);
         chestDataList.put(chestData.getChestLocation(), chestData);
+
+    }
+
+    public void addListOfChestData(final Set<ChestData> needUpdate) {
+        needUpdate.forEach(( chestData) -> {
+            if (chestData == null) return;
+            addPlayerData(chestData);
+            chestDataList.putIfAbsent(chestData.getChestLocation(), chestData);
+        });
+        ChestDataRepository.saveAllAsync(needUpdate);
     }
 
     public void setChestData(final List<ChestData> chests) {
@@ -129,7 +139,7 @@ public class DeadChestCache {
     }
 
     private void removePlayerData(final ChestData chestData) {
-        System.out.println("chestData.getPlayerUUID()  " + chestData.getPlayerUUID() );
+        System.out.println("chestData.getPlayerUUID()  " + chestData.getPlayerUUID());
         if (chestData.getPlayerUUID() == null) return;
         final UUID playerUUID = chestData.getPlayerUUID();
         Set<Location> set = players.get(playerUUID);
@@ -140,6 +150,8 @@ public class DeadChestCache {
                 players.remove(playerUUID);
             }
         }
-        System.out.println("chestData.getPlayerUUID() set  " +  players.get(playerUUID));
+        System.out.println("chestData.getPlayerUUID() set  " + players.get(playerUUID));
     }
+
+
 }

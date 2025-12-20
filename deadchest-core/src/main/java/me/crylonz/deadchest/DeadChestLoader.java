@@ -273,13 +273,13 @@ public class DeadChestLoader {
                 }
             }
             if (!needUpdate.isEmpty()) {
-                ChestDataRepository.saveAllAsync(needUpdate);
+                deadChestCache.addListOfChestData(needUpdate);
             }
             if (!remove.isEmpty()) {
-                ChestDataRepository.removeBatchAsync(remove);
+                deadChestCache.removeChestDataList(remove);
             }
             if (isChangesNeedToBeSave && !update.isEmpty()) {
-                ChestDataRepository.saveAllAsync(update);
+                deadChestCache.addListOfChestData(update);
                 isChangesNeedToBeSave = false;
             }
         }
