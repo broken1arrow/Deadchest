@@ -52,7 +52,7 @@ public class WorldGuardSoftDependenciesChecker {
             RegionQuery query = WorldGuard.getInstance().getPlatform().getRegionContainer().createQuery();
             ApplicableRegionSet set = query.getApplicableRegions(BukkitAdapter.adapt(p.getLocation()));
             LocalPlayer localPlayer = WorldGuardPlugin.inst().wrapPlayer(p);
-            
+
             if (set.testState(localPlayer, DEADCHEST_OWNER_FLAG)) return true;
             if (set.testState(localPlayer, DEADCHEST_MEMBER_FLAG)) return true;
             if (set.testState(localPlayer, DEADCHEST_GUEST_FLAG)) return true;
@@ -61,45 +61,6 @@ public class WorldGuardSoftDependenciesChecker {
                 generateLog("Player [" + p.getName() + "] died without [WorldGuard] permission: No Deadchest generated");
 
             return p.isOp();
-   /*          RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
-            RegionManager regions = container.get(BukkitAdapter.adapt(p.getLocation().getWorld()));
-
-            if (regions != null) {
-                BlockVector3 position = BlockVector3.at(p.getLocation().getX(),
-                        p.getLocation().getY(), p.getLocation().getZ());
-                ApplicableRegionSet set = regions.getApplicableRegions(position);
-
-/*                if (set.size() != 0) {
-
-                    // retrieve the highest priority
-                    ProtectedRegion pr = set.getRegions().iterator().next();
-                    for (ProtectedRegion pRegion : set.getRegions()) {
-                        if (pRegion.getPriority() > pr.getPriority()) {
-                            pr = pRegion;
-                        }
-                    }
-
-                    Boolean ownerFlag = pr.getFlag(DEADCHEST_OWNER_FLAG);
-                    Boolean memberFlag = pr.getFlag(DEADCHEST_MEMBER_FLAG);
-                    Boolean guestFlag = pr.getFlag(DEADCHEST_GUEST_FLAG);
-                    if (ownerFlag != null && ownerFlag) {
-                        if (pr.getOwners().contains(p.getUniqueId()) || p.isOp()) {
-                            return true;
-                        }
-                    } else if (memberFlag != null && memberFlag) {
-                        if (pr.getMembers().contains(p.getUniqueId()) || p.isOp()) {
-                            return true;
-                        }
-                    } else if (guestFlag != null && guestFlag) {
-                        return true;
-                    } else {
-                        return p.isOp();
-                    }
-
-                    generateLog("Player [" + p.getName() + "] died without [ Worldguard] region permission : No Deadchest generated");
-                    return false;
-                }
-            }*/
         } catch (NoClassDefFoundError e) {
             return true;
         }
