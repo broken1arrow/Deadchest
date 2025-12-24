@@ -53,8 +53,8 @@ public class WorldGuardSoftDependenciesChecker {
             ApplicableRegionSet set = query.getApplicableRegions(BukkitAdapter.adapt(p.getLocation()));
             LocalPlayer localPlayer = WorldGuardPlugin.inst().wrapPlayer(p);
 
-            if (set.testState(localPlayer, DEADCHEST_OWNER_FLAG)) return true;
-            if (set.testState(localPlayer, DEADCHEST_MEMBER_FLAG)) return true;
+            if (set.testState(localPlayer, DEADCHEST_OWNER_FLAG) && set.isOwnerOfAll(localPlayer)) return true;
+            if (set.testState(localPlayer, DEADCHEST_MEMBER_FLAG) && set.isMemberOfAll(localPlayer)) return true;
             if (set.testState(localPlayer, DEADCHEST_GUEST_FLAG)) return true;
 
             if (!p.isOp())
