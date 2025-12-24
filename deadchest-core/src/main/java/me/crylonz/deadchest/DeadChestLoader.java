@@ -157,6 +157,7 @@ public class DeadChestLoader {
         config.register(ConfigKey.DISPLAY_POSITION_ON_DEATH.toString(), true);
         config.register(ConfigKey.ITEMS_DROPPED_AFTER_TIMEOUT.toString(), false);
         config.register(ConfigKey.WORLD_GUARD_DETECTION.toString(), false);
+        config.register(ConfigKey.WORLD_GUARD_FLAG_DEFAULT.toString(), false);
         config.register(ConfigKey.DROP_MODE.toString(), 1);
         config.register(ConfigKey.DROP_BLOCK.toString(), 1);
         config.register(ConfigKey.ITEM_DURABILITY_LOSS_ON_DEATH.toString(), 0);

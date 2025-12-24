@@ -49,18 +49,34 @@ public class WorldGuardSoftDependenciesChecker {
         }
 
         try {
-            RegionQuery query = WorldGuard.getInstance().getPlatform().getRegionContainer().createQuery();
-            ApplicableRegionSet set = query.getApplicableRegions(BukkitAdapter.adapt(p.getLocation()));
-            LocalPlayer localPlayer = WorldGuardPlugin.inst().wrapPlayer(p);
+            if (p.isOp()) {
+                return true;
+            }
 
-            if (set.testState(localPlayer, DEADCHEST_OWNER_FLAG) && set.isOwnerOfAll(localPlayer)) return true;
-            if (set.testState(localPlayer, DEADCHEST_MEMBER_FLAG) && set.isMemberOfAll(localPlayer)) return true;
-            if (set.testState(localPlayer, DEADCHEST_GUEST_FLAG)) return true;
+            final RegionQuery query = WorldGuard.getInstance().getPlatform().getRegionContainer().createQuery();
+            final ApplicableRegionSet set = query.getApplicableRegions(BukkitAdapter.adapt(p.getLocation()));
+            final LocalPlayer localPlayer = WorldGuardPlugin.inst().wrapPlayer(p);
 
-            if (!p.isOp())
+            if (set.isOwnerOfAll(localPlayer)) {
+                final StateFlag.State state = set.queryState(localPlayer, DEADCHEST_OWNER_FLAG);
+                if (state == StateFlag.State.ALLOW) return true;
+                if (state == StateFlag.State.DENY) return false;
+                return config.getBoolean(ConfigKey.WORLD_GUARD_FLAG_DEFAULT);
+            }
+
+            if (set.isMemberOfAll(localPlayer)) {
+                final StateFlag.State state = set.queryState(localPlayer, DEADCHEST_MEMBER_FLAG);
+                if (state == StateFlag.State.ALLOW) return true;
+                if (state == StateFlag.State.DENY) return false;
+                return config.getBoolean(ConfigKey.WORLD_GUARD_FLAG_DEFAULT);
+            }
+
+            final StateFlag.State state = set.queryState(localPlayer, DEADCHEST_GUEST_FLAG);
+            if (state == StateFlag.State.DENY) {
                 generateLog("Player [" + p.getName() + "] died without [WorldGuard] permission: No Deadchest generated");
-
-            return p.isOp();
+                return false;
+            }
+            return config.getBoolean(ConfigKey.WORLD_GUARD_FLAG_DEFAULT);
         } catch (NoClassDefFoundError e) {
             return true;
         }
