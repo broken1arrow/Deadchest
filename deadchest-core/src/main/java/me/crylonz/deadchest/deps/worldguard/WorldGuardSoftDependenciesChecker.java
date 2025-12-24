@@ -1,15 +1,14 @@
 package me.crylonz.deadchest.deps.worldguard;
 
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
-import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldguard.LocalPlayer;
 import com.sk89q.worldguard.WorldGuard;
+import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
-import com.sk89q.worldguard.protection.flags.BooleanFlag;
+import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.flags.registry.FlagConflictException;
 import com.sk89q.worldguard.protection.flags.registry.FlagRegistry;
-import com.sk89q.worldguard.protection.managers.RegionManager;
-import com.sk89q.worldguard.protection.regions.ProtectedRegion;
-import com.sk89q.worldguard.protection.regions.RegionContainer;
+import com.sk89q.worldguard.protection.regions.RegionQuery;
 import me.crylonz.deadchest.DeadChestLoader;
 import me.crylonz.deadchest.utils.ConfigKey;
 import org.bukkit.entity.Player;
@@ -19,27 +18,26 @@ import static me.crylonz.deadchest.utils.Utils.generateLog;
 
 public class WorldGuardSoftDependenciesChecker {
 
-    public static BooleanFlag DEADCHEST_GUEST_FLAG;
-    public static BooleanFlag DEADCHEST_OWNER_FLAG;
-    public static BooleanFlag DEADCHEST_MEMBER_FLAG;
+    public static StateFlag DEADCHEST_GUEST_FLAG;
+    public static StateFlag DEADCHEST_OWNER_FLAG;
+    public static StateFlag DEADCHEST_MEMBER_FLAG;
 
     public void load() {
         FlagRegistry registry = WorldGuard.getInstance().getFlagRegistry();
         try {
-            BooleanFlag owner_flag = new BooleanFlag("dc-owner");
+            StateFlag owner_flag = new StateFlag("dc-owner", false);
             registry.register(owner_flag);
             DEADCHEST_OWNER_FLAG = owner_flag;
 
-            BooleanFlag nobody_flag = new BooleanFlag("dc-guest");
+            StateFlag nobody_flag = new StateFlag("dc-guest", false);
             registry.register(nobody_flag);
             DEADCHEST_GUEST_FLAG = nobody_flag;
 
-            BooleanFlag member_flag = new BooleanFlag("dc-member");
+            StateFlag member_flag = new StateFlag("dc-member", false);
             registry.register(member_flag);
             DEADCHEST_MEMBER_FLAG = member_flag;
 
-        } catch (
-                FlagConflictException e) {
+        } catch (FlagConflictException e) {
             DeadChestLoader.log.warning("Conflict in Deadchest flags");
         }
     }
@@ -51,7 +49,19 @@ public class WorldGuardSoftDependenciesChecker {
         }
 
         try {
-            RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
+            RegionQuery query = WorldGuard.getInstance().getPlatform().getRegionContainer().createQuery();
+            ApplicableRegionSet set = query.getApplicableRegions(BukkitAdapter.adapt(p.getLocation()));
+            LocalPlayer localPlayer = WorldGuardPlugin.inst().wrapPlayer(p);
+            
+            if (set.testState(localPlayer, DEADCHEST_OWNER_FLAG)) return true;
+            if (set.testState(localPlayer, DEADCHEST_MEMBER_FLAG)) return true;
+            if (set.testState(localPlayer, DEADCHEST_GUEST_FLAG)) return true;
+
+            if (!p.isOp())
+                generateLog("Player [" + p.getName() + "] died without [WorldGuard] permission: No Deadchest generated");
+
+            return p.isOp();
+   /*          RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
             RegionManager regions = container.get(BukkitAdapter.adapt(p.getLocation().getWorld()));
 
             if (regions != null) {
@@ -59,7 +69,7 @@ public class WorldGuardSoftDependenciesChecker {
                         p.getLocation().getY(), p.getLocation().getZ());
                 ApplicableRegionSet set = regions.getApplicableRegions(position);
 
-                if (set.size() != 0) {
+/*                if (set.size() != 0) {
 
                     // retrieve the highest priority
                     ProtectedRegion pr = set.getRegions().iterator().next();
@@ -89,8 +99,7 @@ public class WorldGuardSoftDependenciesChecker {
                     generateLog("Player [" + p.getName() + "] died without [ Worldguard] region permission : No Deadchest generated");
                     return false;
                 }
-            }
-            return true;
+            }*/
         } catch (NoClassDefFoundError e) {
             return true;
         }
