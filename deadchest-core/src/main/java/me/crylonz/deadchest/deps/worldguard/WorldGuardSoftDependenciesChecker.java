@@ -4,14 +4,20 @@ import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldguard.LocalPlayer;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
+import com.sk89q.worldguard.domains.DefaultDomain;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.flags.registry.FlagConflictException;
 import com.sk89q.worldguard.protection.flags.registry.FlagRegistry;
+import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionQuery;
 import me.crylonz.deadchest.DeadChestLoader;
 import me.crylonz.deadchest.utils.ConfigKey;
 import org.bukkit.entity.Player;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 import static me.crylonz.deadchest.DeadChestLoader.config;
 import static me.crylonz.deadchest.utils.Utils.generateLog;
@@ -49,37 +55,57 @@ public class WorldGuardSoftDependenciesChecker {
         }
 
         try {
-            if (p.isOp()) {
+/*            if (p.isOp()) {
                 return true;
-            }
-
+            }*/
             final RegionQuery query = WorldGuard.getInstance().getPlatform().getRegionContainer().createQuery();
             final ApplicableRegionSet set = query.getApplicableRegions(BukkitAdapter.adapt(p.getLocation()));
             final LocalPlayer localPlayer = WorldGuardPlugin.inst().wrapPlayer(p);
+            final UUID uuid = p.getUniqueId();
+            boolean defaultAllow = config.getBoolean(ConfigKey.WORLD_GUARD_FLAG_DEFAULT);
+            final Set<Boolean> defaults = new HashSet<>();
 
-            if (set.isOwnerOfAll(localPlayer)) {
-                final StateFlag.State state = set.queryState(localPlayer, DEADCHEST_OWNER_FLAG);
-                if (state == StateFlag.State.ALLOW) return true;
-                if (state == StateFlag.State.DENY) return false;
-                return config.getBoolean(ConfigKey.WORLD_GUARD_FLAG_DEFAULT);
-            }
+            for (ProtectedRegion region : set.getRegions()) {
+                State stateOwner = checkRegionFlag(region, DEADCHEST_OWNER_FLAG, region.getOwners(), uuid);
+                if (stateOwner == State.ALLOWED) return true;
+                State stateMember = checkRegionFlag(region, DEADCHEST_MEMBER_FLAG, region.getMembers(), uuid);
+                if (stateMember == State.ALLOWED) return true;
 
-            if (set.isMemberOfAll(localPlayer)) {
-                final StateFlag.State state = set.queryState(localPlayer, DEADCHEST_MEMBER_FLAG);
-                if (state == StateFlag.State.ALLOW) return true;
-                if (state == StateFlag.State.DENY) return false;
-                return config.getBoolean(ConfigKey.WORLD_GUARD_FLAG_DEFAULT);
+                if (stateMember == State.NONE && stateOwner == State.NONE) {
+                    defaults.add(true);
+                } else {
+                    if (stateOwner == State.DENY || stateMember == State.DENY)
+                        return false;
+                    defaults.add(false);
+                }
             }
+            if (defaults.size() == 1 && defaults.contains(true))
+                return defaultAllow;
 
             final StateFlag.State state = set.queryState(localPlayer, DEADCHEST_GUEST_FLAG);
+            System.out.println("DEADCHEST_GUEST_FLAG " + state);
+            if (state == StateFlag.State.ALLOW) return true;
             if (state == StateFlag.State.DENY) {
                 generateLog("Player [" + p.getName() + "] died without [WorldGuard] permission: No Deadchest generated");
                 return false;
             }
-            return config.getBoolean(ConfigKey.WORLD_GUARD_FLAG_DEFAULT);
+            return defaultAllow;
         } catch (NoClassDefFoundError e) {
             return true;
         }
     }
 
+    private State checkRegionFlag(ProtectedRegion region, StateFlag flag, DefaultDomain uuids, UUID playerUUID) {
+        StateFlag.State state = region.getFlag(flag);
+        if (state == null) return State.NONE;
+        if (state == StateFlag.State.DENY) return State.DENY;
+        return state == StateFlag.State.ALLOW && uuids.contains(playerUUID) ? State.ALLOWED : State.NOT_APPLICABLE;
+    }
+
+    private enum State {
+        NONE,
+        DENY,
+        ALLOWED,
+        NOT_APPLICABLE
+    }
 }
