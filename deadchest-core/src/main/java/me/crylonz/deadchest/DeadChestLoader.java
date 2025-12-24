@@ -87,11 +87,20 @@ public class DeadChestLoader {
 
         // Which block can be used as grave ?
         graveBlocks.add(Material.CHEST);
-        graveBlocks.add(Material.PLAYER_HEAD);
         graveBlocks.add(Material.ENDER_CHEST);
-        graveBlocks.add(Material.BARREL);
-        graveBlocks.add(Material.SHULKER_BOX);
 
+        Material head = Material.getMaterial("PLAYER_HEAD");
+        if (head == null)
+            head = Material.getMaterial("SKULL");
+        if (head != null)
+            graveBlocks.add(head);
+
+        final Material barrel = Material.getMaterial("BARREL");
+        if (barrel != null)
+            graveBlocks.add(barrel);
+        final Material shulkerBox = Material.getMaterial("SHULKER_BOX");
+        if (shulkerBox != null)
+            graveBlocks.add(shulkerBox);
 
         Objects.requireNonNull(javaPlugin.getCommand("dc"), "Command dc not found")
                 .setExecutor(new DCCommandExecutor(this));
