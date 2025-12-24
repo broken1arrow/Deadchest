@@ -139,18 +139,15 @@ public class DeadChestCache {
     }
 
     private void removePlayerData(final ChestData chestData) {
-        System.out.println("chestData.getPlayerUUID()  " + chestData.getPlayerUUID());
         if (chestData.getPlayerUUID() == null) return;
         final UUID playerUUID = chestData.getPlayerUUID();
         Set<Location> set = players.get(playerUUID);
-        System.out.println("chestData.getPlayerUUID() set  " + set);
         if (set != null) {
             set.remove(chestData.getChestLocation());
             if (set.isEmpty()) {
                 players.remove(playerUUID);
             }
         }
-        System.out.println("chestData.getPlayerUUID() set  " + players.get(playerUUID));
     }
 
 
