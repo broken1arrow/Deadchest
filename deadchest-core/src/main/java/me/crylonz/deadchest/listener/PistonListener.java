@@ -16,7 +16,9 @@ public class PistonListener implements Listener {
         for (Block block : event.getBlocks()) {
             if (block != null && (block.getType() == Material.PLAYER_HEAD || block.getType() == Material.PLAYER_WALL_HEAD)) {
                 final ChestData chestData = DeadChestLoader.getChestData(block.getLocation());
-                if (chestData == null) return;
+                if (chestData == null) {
+                    return;
+                }
                 event.setCancelled(true);
             }
         }

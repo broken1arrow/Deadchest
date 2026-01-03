@@ -101,8 +101,7 @@ public class DCCommandRegistrationService extends DCCommandRegistration {
                             // remove holographic
                             chestData.removeArmorStand();
 
-                            //todo remove in memory
-                            // chestDataIt.remove();
+                            //add chest to remove
                             chestDataRemove.add(chestData);
                             cpt++;
                         }

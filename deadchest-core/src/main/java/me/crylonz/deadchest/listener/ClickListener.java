@@ -204,7 +204,6 @@ public class ClickListener implements Listener {
     private void cleanupChest(ChestData cd, Block block, Player player) {
         block.setType(Material.AIR);
         DeadChestLoader.getChestDataCache().removeChestData(cd);
-        //todo remove? ChestDataRepository.saveAllAsync(chestDataList);
         block.getWorld().playEffect(block.getLocation(), Effect.MOBSPAWNER_FLAMES, 10);
         player.playSound(block.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 10, 1);
     }

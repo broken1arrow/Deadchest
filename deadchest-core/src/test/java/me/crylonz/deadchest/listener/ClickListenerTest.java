@@ -79,7 +79,7 @@ class ClickListenerTest {
         deadChest.addChestData(cd);
 
         PlayerInteractEvent event = new PlayerInteractEvent(player, Action.RIGHT_CLICK_BLOCK,
-                new ItemStack(Material.STONE), chestBlock, BlockFace.NORTH);
+                new ItemStack(Material.STONE), chestBlock, BlockFace.UP);
 
         listener.onClick(event);
         assertTrue(event.isCancelled(), "Right click near DeadChest should cancel the event");
@@ -92,7 +92,6 @@ class ClickListenerTest {
 
         ChestData cd = mock(ChestData.class);
         when(cd.getChestLocation()).thenReturn(chestBlock.getLocation());
-        //when(cd.getPlayerUUID()).thenReturn("other-uuid");
         when(cd.getPlayerUUID()).thenReturn(UUID.randomUUID());
         deadChest.addChestData(cd);
         PlayerInteractEvent event = new PlayerInteractEvent(player, Action.LEFT_CLICK_BLOCK,

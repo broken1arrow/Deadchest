@@ -41,7 +41,6 @@ public class DeadChestManager {
                     Location loc = chestData.getChestLocation();
                     loc.getWorld().getBlockAt(loc).setType(Material.AIR);
                     chestData.removeArmorStand();
-                    //todo not try to remove direcly from list chestDataIt.remove();
                     chestDataRemove.add(chestData);
                     chestDataRemoved++;
                 }
@@ -96,11 +95,6 @@ public class DeadChestManager {
         int count = 0;
         if (p != null) {
             count = DeadChestLoader.getChestDataCache().getPlayerChestAmount(p);
-       /*     final List<ChestData> chestDataList = DeadChestLoader.getChestData().getChestDataList();
-            for (ChestData chestData : chestDataList) {
-                if (p.getUniqueId().toString().equals(chestData.getPlayerUUID()))
-                    count++;
-            }*/
         }
         return count;
     }
@@ -189,7 +183,6 @@ public class DeadChestManager {
                     chestData.cleanInventory();
                 }
             }
-            //todo should use another way to remove chestDataIt.remove();
             if (chestData.removeArmorStand())
                 return ExpiredActionType.REMOVED_ARMORSTAND;
             return ExpiredActionType.FAIL_REMOVE_ARMORSTAND;

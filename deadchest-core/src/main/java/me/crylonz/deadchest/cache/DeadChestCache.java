@@ -16,20 +16,21 @@ public class DeadChestCache {
 
 
     public void addChestData(final ChestData chestData) {
-        if (chestDataList == null)
+        if (chestDataList == null) {
             setChestData(new ArrayList<>());
+        }
         addPlayerData(chestData);
         chestDataList.put(chestData.getChestLocation(), chestData);
 
     }
 
-    public void addListOfChestData(final Set<ChestData> needUpdate) {
-        needUpdate.forEach(( chestData) -> {
+    public void addListOfChestData(final Set<ChestData> chestThatNeedsBeUpdated) {
+        chestThatNeedsBeUpdated.forEach(( chestData) -> {
             if (chestData == null) return;
             addPlayerData(chestData);
             chestDataList.putIfAbsent(chestData.getChestLocation(), chestData);
         });
-        ChestDataRepository.saveAllAsync(needUpdate);
+        ChestDataRepository.saveAllAsync(chestThatNeedsBeUpdated);
     }
 
     public void setChestData(final List<ChestData> chests) {
@@ -49,13 +50,13 @@ public class DeadChestCache {
         return players.get(player.getUniqueId());
     }
 
-    public void getPlayerLinkedDeadChestData(@Nonnull final Player player, @Nonnull final Consumer<ChestData> deadchestLoc) {
+    public void getPlayerLinkedDeadChestData(@Nonnull final Player player, @Nonnull final Consumer<ChestData> dataConsumer) {
         final Set<Location> locations = getPlayerLinkedData(player);
         if (locations != null) {
             locations.forEach(location -> {
                 final ChestData chestData = getChestData(location);
                 if (chestData != null) {
-                    deadchestLoc.accept(chestData);
+                    dataConsumer.accept(chestData);
                 }
             });
         }
@@ -75,8 +76,9 @@ public class DeadChestCache {
 
     public int getPlayerChestAmount(@Nonnull final Player player) {
         final Set<Location> locations = players.get(player.getUniqueId());
-        if (locations != null)
+        if (locations != null) {
             return locations.size();
+        }
         return 0;
     }
 
