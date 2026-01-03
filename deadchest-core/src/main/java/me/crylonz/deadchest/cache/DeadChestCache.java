@@ -26,7 +26,9 @@ public class DeadChestCache {
 
     public void addListOfChestData(final Set<ChestData> chestThatNeedsBeUpdated) {
         chestThatNeedsBeUpdated.forEach(( chestData) -> {
-            if (chestData == null) return;
+            if (chestData == null) {
+                return;
+            }
             addPlayerData(chestData);
             chestDataList.putIfAbsent(chestData.getChestLocation(), chestData);
         });
